@@ -20,4 +20,14 @@ public:
 	virtual bool AddSourceFiles(const TArray<FString>& AbsoluteSourcePaths, const TArray<FString>& AvailableModules) override;
 	virtual bool SaveAllOpenDocuments() const override;
 	virtual void Tick(const float DeltaTime) override;
+
+    /**
+     * Create the CMakeLists.txt File, called from File -> Refresh CMakeLists
+     */
+	void GenerateProjectFile();
+
+	/**
+	 * Open the CLion IDE, called from File ->Open CLion
+	 */
+	void OpenCLion();
 };

@@ -73,4 +73,15 @@ void FCLionSourceCodeAccessor::Tick(const float DeltaTime)
 {
 }
 
+
+void FCLionSourceCodeAccessor::GenerateProjectFile()
+{
+    // Handle project checkout
+
+}
+
+void FCLionSourceCodeAccessor::OpenCLion()
+{
+
+}
 #undef LOCTEXT_NAMESPACE

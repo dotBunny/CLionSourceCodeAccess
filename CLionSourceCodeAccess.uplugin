@@ -1,0 +1,29 @@
+{
+	"FileVersion" : 3,
+	"Version" : 1,
+	"VersionName" : "0.1",
+	"FriendlyName" : "CLion Integration",
+	"Description" : "Allows access to source code in CLion.",
+	"Category" : "Programming",
+	"CreatedBy" : "dotBunny, Inc.",
+	"CreatedByURL" : "http://dotbunny.com",
+	"DocsURL" : "",
+	"MarketplaceURL" : "",
+	"SupportURL" : "",
+	"EnabledByDefault" : true,
+	"CanContainContent" : false,
+	"IsBetaVersion" : true,
+	"Installed" : false,
+	"Modules" :
+	[
+		{
+			"Name" : "CLionSourceCodeAccess",
+			"Type" : "Developer",
+			"LoadingPhase" : "Default",
+			"WhitelistPlatforms" :
+			[
+				"Mac"
+			]
+		}
+	]
+}

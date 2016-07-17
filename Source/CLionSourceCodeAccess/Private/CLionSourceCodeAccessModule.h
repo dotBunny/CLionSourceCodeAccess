@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSourceCodeAccessor.h"
 
 class FCLionSourceCodeAccessModule : public IModuleInterface
@@ -12,6 +13,12 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
+    void ClickGenerateProjectFiles();
+    FCLionSourceCodeAccessor& GetAccessor();
+
+    void AddMenuOptions(FMenuBuilder& MenuBuilder);
+
 private:
+    TSharedPtr<FExtender> MainMenuExtender;
 	FCLionSourceCodeAccessor CLionSourceCodeAccessor;
 };

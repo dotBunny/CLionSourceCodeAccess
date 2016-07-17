@@ -11,9 +11,21 @@ namespace UnrealBuildTool.Rules
 				{
 					"Core",
 					"SourceCodeAccess",
-					"DesktopPlatform"
+					"DesktopPlatform",
+
+                    "LevelEditor"
 				}
 			);
+
+            PublicDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "Core",
+                    "UnrealEd",
+                    "Slate",
+                    "SlateCore",
+                    "WorkspaceMenuStructure",
+                });
 		}
 	}
 }

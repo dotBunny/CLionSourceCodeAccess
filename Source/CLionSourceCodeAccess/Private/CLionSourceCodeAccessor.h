@@ -21,13 +21,43 @@ public:
 	virtual bool SaveAllOpenDocuments() const override;
 	virtual void Tick(const float DeltaTime) override;
 
-    /**
-     * Create the CMakeLists.txt File, called from File -> Refresh CMakeLists
-     */
+
+	/**
+ 	* Create the CMakeLists.txt File, called from File -> Refresh CMakeLists
+ 	*/
 	void GenerateProjectFile();
+
+	/**
+	 * Get the path to the CLion executable
+	 */
+	FString GetCLionExecutable() const;
+
+	/**
+	 * Check if CLion is already running
+	 */
+	bool IsIDERunning();
 
 	/**
 	 * Open the CLion IDE, called from File ->Open CLion
 	 */
 	void OpenCLion();
+
+	/**
+ 	* Deinitialize the accessor.
+ 	*/
+	void Shutdown();
+
+	/**
+	 * Initialize the accessor.
+	 */
+	void Startup();
+
+private:
+
+	mutable FString CachedSolutionPath;
+	mutable FString CachedCLionPath;
+
+	bool CanRunCLion;
+
+	FString GetSolutionPath() const;
 };

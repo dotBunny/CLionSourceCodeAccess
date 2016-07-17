@@ -19,7 +19,7 @@ bool FCLionSourceCodeAccessor::CanAccessSourceCode() const
 void FCLionSourceCodeAccessor::GenerateProjectFile()
 {
 	// Handle project checkout
-
+    UE_LOG(LogCLionAccessor, Warning, TEXT("GENERATE PROJECT FILE - %s"), *this->CachedSolutionPath);
 }
 
 FString FCLionSourceCodeAccessor::GetCLionExecutable() const
@@ -29,7 +29,7 @@ FString FCLionSourceCodeAccessor::GetCLionExecutable() const
 #if PLATFORM_MAC
 	this->CachedCLionPath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
 #elif PLATFORM_WINDOWS
-    this->CachedCLionPath = TEXT("c:\\Program Files\\something.exe");
+    this->CachedCLionPath = TEXT("C:\\Program Files (x86)\\JetBrains\\CLion 2016.1\\bin\\clion64.exe");
 #else
     this->CachedCLionPath = nullptr;
 #endif

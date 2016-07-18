@@ -3,6 +3,8 @@
 #include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSettings.h"
 
+#define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
+
 static const char* CMakeListDefault =
     "cmake_minimum_required (VERSION 2.8.8)\n"
     "project (UnrealEngine)\n"
@@ -101,14 +103,8 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
     const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
     const FName MemberPropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-    FString temp1 = PropertyName.ToString();
-    FString temp2 = MemberPropertyName.ToString();
-    UE_LOG(LogTemp, Warning, TEXT("POST %s"), *temp1);
-    UE_LOG(LogTemp, Warning, TEXT("POST M %s"), *temp2);
-
-    if ( PropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, ProjectPath) )
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, ProjectPath) )
     {
-    UE_LOG(LogTemp, Warning, TEXT("PROJECT CHECK"));
         ProjectPath.Path = FPaths::ConvertRelativePathToFull(ProjectPath.Path);
         ProjectPath.Path = ProjectPath.Path.Trim();
         ProjectPath.Path = ProjectPath.Path.TrimTrailing();
@@ -133,9 +129,8 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
         bRequestRefresh = true;
     }
 
-    if ( PropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, EnginePath) )
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, EnginePath) )
     {
-    UE_LOG(LogTemp, Warning, TEXT("ENGINE CHECK"));
         EnginePath.Path = FPaths::ConvertRelativePathToFull(EnginePath.Path);
         EnginePath.Path = EnginePath.Path.Trim();
         EnginePath.Path = EnginePath.Path.TrimTrailing();
@@ -160,21 +155,31 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
         bRequestRefresh = true;
     }
 
-    if ( PropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,CLionPath) )
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,CLionPath) )
     {
-        UE_LOG(LogTemp, Warning, TEXT("CLIONPATH CHECK"));
         CLionPath.FilePath = FPaths::ConvertRelativePathToFull(CLionPath.FilePath);
         CLionPath.FilePath = CLionPath.FilePath.Trim();
         CLionPath.FilePath = CLionPath.FilePath.TrimTrailing();
 
+        FText FailReason;
+
 #if PLATFORM_MAC
-        UE_LOG(LogTemp, Warning, TEXT("ADD APPEND"));
-        CLionPath.FilePath = CLionPath.FilePath.Append(TEXT("/Contents/MacOS/clion"));
+        if ( CLionPath.FilePath.EndsWith(TEXT("clion.app"))) {
+            CLionPath.FilePath = CLionPath.FilePath.Append(TEXT("/Contents/MacOS/clion"));
+        }
+
+        if ( !CLionPath.FilePath.Contains(TEXT("clion.app")))
+        {
+            FailReason = LOCTEXT( "CLionSelectMacApp", "Please select the CLion app" );
+            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
+            CLionPath.FilePath = PreviousCLionPath;
+            return;
+        }
 #endif
 
         if ( CLionPath.FilePath == PreviousCLionPath ) return;
 
-        FText FailReason;
+
         if (!FPaths::ValidatePath(CLionPath.FilePath, &FailReason))
         {
             FMessageDialog::Open(EAppMsgType::Ok, FailReason);

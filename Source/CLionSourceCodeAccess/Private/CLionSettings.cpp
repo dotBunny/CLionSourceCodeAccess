@@ -6,29 +6,27 @@
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 
 static const char* CMakeListDefault =
-    "cmake_minimum_required (VERSION 2.8.8)\n"
-    "project (UnrealEngine)\n"
-    "set(UE_ROOT_PATH \"<<UE_ROOT>>\")\n"
-    "set(PROJECT_ROOT_PATH \"<<PROJECT_ROOT>>\")\n"
-    "MACRO(HEADER_DIRECTORIES base_path return_list)\n"
-    "   FILE(GLOB_RECURSE new_list ${base_path}/*.h)\n"
-    "   SET(dir_list \"\")\n"
-    "   FOREACH(file_path ${new_list})\n"
-    "       GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)\n"
-    "       SET(dir_list ${dir_list} ${dir_path})\n"
-    "   ENDFOREACH()\n"
-    "   LIST(REMOVE_DUPLICATES dir_list)\n"
-    "   SET(${return_list} ${dir_list})\n"
-    "ENDMACRO()\n"
-    "HEADER_DIRECTORIES(\"${PROJECT_ROOT_PATH}\" ProjectHeaders)\n"
-    "HEADER_DIRECTORIES(\"${UE_ROOT_PATH}\" UnrealHeaders)\n"
-    "include_directories(${UnrealHeaders})\n"
-    "include_directories(${ProjectHeaders})\n"
-    "file(GLOB_RECURSE Source Source/*.cpp)\n"
-    "file(GLOB_RECURSE SourceHeaders Source/*.h)\n"
-    "file(GLOB_RECURSE Plugins Plugins/*.cpp)\n"
-    "file(GLOB_RECURSE PluginsHeaders Plugins/*.h)\n"
-    "add_executable(UnrealEngine ${Source} ${SourceHeaders} ${Plugins} ${PluginsHeaders})\n";
+        "cmake_minimum_required (VERSION 2.8.8)\n"
+                "project (UnrealEngine)\n"
+                "MACRO(HEADER_DIRECTORIES base_path return_list)\n"
+                "   FILE(GLOB_RECURSE new_list ${base_path}/*.h)\n"
+                "   SET(dir_list \"\")\n"
+                "   FOREACH(file_path ${new_list})\n"
+                "       GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)\n"
+                "       SET(dir_list ${dir_list} ${dir_path})\n"
+                "   ENDFOREACH()\n"
+                "   LIST(REMOVE_DUPLICATES dir_list)\n"
+                "   SET(${return_list} ${dir_list})\n"
+                "ENDMACRO()\n"
+                "HEADER_DIRECTORIES(\"<<PROJECT_ROOT>>\" ProjectHeaders)\n"
+                "HEADER_DIRECTORIES(\"<<UE_ROOT>>\" UnrealHeaders)\n"
+                "include_directories(${UnrealHeaders})\n"
+                "include_directories(${ProjectHeaders})\n"
+                "file(GLOB_RECURSE Source Source/*.cpp)\n"
+                "file(GLOB_RECURSE SourceHeaders Source/*.h)\n"
+                "file(GLOB_RECURSE Plugins Plugins/*.cpp)\n"
+                "file(GLOB_RECURSE PluginsHeaders Plugins/*.h)\n"
+                "add_executable(UnrealEngine ${Source} ${SourceHeaders} ${Plugins} ${PluginsHeaders})\n";
 
 UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
         : Super(ObjectInitializer)
@@ -211,10 +209,9 @@ bool UCLionSettings::OutputCMakeList()
     // Handle Engine Folder
     OutputTemplate = OutputTemplate.Replace(TEXT("<<UE_ROOT>>"), *this->EnginePath.Path);
 
-    if (FFileHelper::SaveStringToFile(OutputTemplate, *OutputPath)) {
+    if (FFileHelper::SaveStringToFile(OutputTemplate, *OutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
         return true;
     }
 
     return false;
 }
-

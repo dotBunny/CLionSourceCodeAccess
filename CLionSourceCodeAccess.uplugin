@@ -1,7 +1,7 @@
 {
 	"FileVersion" : 3,
 	"Version" : 1,
-	"VersionName" : "0.1",
+	"VersionName" : "0.6",
 	"FriendlyName" : "CLion Integration",
 	"Description" : "Allows access to source code in CLion.",
 	"Category" : "Programming",
@@ -22,7 +22,9 @@
 			"LoadingPhase" : "Default",
 			"WhitelistPlatforms" :
 			[
-				"Mac"
+				"Mac",
+				"Windows",
+				"Linux"
 			]
 		}
 	]

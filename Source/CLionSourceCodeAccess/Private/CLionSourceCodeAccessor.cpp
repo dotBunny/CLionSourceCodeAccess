@@ -3,37 +3,25 @@
 
 #include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSourceCodeAccessor.h"
-#include "ISourceCodeAccessModule.h"
-#include "DesktopPlatformModule.h"
-
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCLionAccessor, Log, All);
 
+bool FCLionSourceCodeAccessor::AddSourceFiles(const TArray<FString>& AbsoluteSourcePaths, const TArray<FString>& AvailableModules)
+{
+    // There is no need to add the files to the make file because it already has wildcard searches of the necessary project folders
+    return true;
+}
+
 bool FCLionSourceCodeAccessor::CanAccessSourceCode() const
 {
-	return FPaths::FileExists(*this->CachedCLionPath);
+    return this->Settings->IsSetup();
 }
 
 void FCLionSourceCodeAccessor::GenerateProjectFile()
 {
-	// Handle project checkout
-    UE_LOG(LogCLionAccessor, Warning, TEXT("GENERATE PROJECT FILE - %s"), *this->CachedSolutionPath);
-}
-
-FString FCLionSourceCodeAccessor::GetCLionExecutable() const
-{
-	// TODO: Make executable path automatic or atleast settable in settings?
-	// TODO: Need to handle platforms
-#if PLATFORM_MAC
-	this->CachedCLionPath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
-#elif PLATFORM_WINDOWS
-    this->CachedCLionPath = TEXT("C:\\Program Files (x86)\\JetBrains\\CLion 2016.1\\bin\\clion64.exe");
-#else
-    this->CachedCLionPath = nullptr;
-#endif
-	return this->CachedCLionPath;
+    this->Settings->OutputCMakeList();
 }
 
 FText FCLionSourceCodeAccessor::GetDescriptionText() const
@@ -51,98 +39,65 @@ FText FCLionSourceCodeAccessor::GetNameText() const
 	return LOCTEXT("CLionDisplayName", "CLion");
 }
 
-FString FCLionSourceCodeAccessor::GetSolutionPath() const
-{
-	if(IsInGameThread())
-	{
-		FString SolutionPath;
-		if(FDesktopPlatformModule::Get()->GetSolutionPath(SolutionPath))
-		{
-			this->CachedSolutionPath = FPaths::ConvertRelativePathToFull(SolutionPath);
-		}
-	}
-	return this->CachedSolutionPath;
-}
-
-bool FCLionSourceCodeAccessor::IsIDERunning()
-{
-	return false;
-}
-
-
-void FCLionSourceCodeAccessor::OpenCLion()
-{
-
-}
-
 void FCLionSourceCodeAccessor::Shutdown()
 {
-
+    this->Settings = nullptr;
 }
+
 void FCLionSourceCodeAccessor::Startup()
 {
-    UE_LOG(LogCLionAccessor, Warning, TEXT("CLion: STARTUP"));
-
-	// Cache Paths
-	this->GetSolutionPath();
-	this->GetCLionExecutable();
-}
-
-
-
-
-
-//////----------------------
-
-
-
-bool FCLionSourceCodeAccessor::OpenSolution()
-{
-    UE_LOG(LogCLionAccessor, Warning,  TEXT("CLion: OPEN SOLUTION"));
-    // Write out solution
-    // Open makelistfiel
-	return true;
+    // Get reference to our settings object
+    this->Settings = GetMutableDefault<UCLionSettings>();
 }
 
 bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 LineNumber, int32 ColumnNumber)
 {
-    UE_LOG(LogCLionAccessor, Warning, TEXT("CLion: OPEN FILE AT"));
-    if (!this->CanAccessSourceCode())
+    if (!this->Settings->IsSetup())
     {
-        UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenFileAtLine: Cannot find CLion binary"));
+        UE_LOG(LogCLionAccessor, Warning, TEXT("Please configure the CLion integration in your project settings."));
         return false;
     }
 
     const FString Path = FString::Printf(TEXT("\"%s --line %d\""), *FullPath, LineNumber);
-
-    if(FPlatformProcess::CreateProc(*this->CachedCLionPath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
+    if(FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
         UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenFileAtLine: Failed"));
+        return false;
     }
 
-    UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenFileAtLine: %s %d"), *FullPath, LineNumber);
+    return true;
+}
+
+bool FCLionSourceCodeAccessor::OpenSolution()
+{
+    // Write out the CMake file for good measure
+    this->Settings->OutputCMakeList();
+
+    if(FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *this->Settings->ProjectPath.Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
+    {
+        UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSolution: Failed"));
+        return false;
+    }
 
     return true;
 }
 
 bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSourcePaths)
 {
-    UE_LOG(LogCLionAccessor, Warning, TEXT("CLion: OPEN SOURCE FILES"));
-    if (!this->CanAccessSourceCode())
+    if (!this->Settings->IsSetup())
     {
-        UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSourceFiles: Cannot find CLion binary"));
+        UE_LOG(LogCLionAccessor, Warning, TEXT("Please configure the CLion integration in your project settings."));
         return false;
     }
 
     for(const auto& SourcePath : AbsoluteSourcePaths)
     {
         const FString Path = FString::Printf(TEXT("\"%s\""), *SourcePath);
-
-        FProcHandle Proc = FPlatformProcess::CreateProc(*this->CachedCLionPath, *Path, true, false, false, nullptr, 0, nullptr, nullptr);
+        FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *Path, true, false, false, nullptr, 0, nullptr, nullptr);
 
         if(Proc.IsValid())
         {
-            UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSourceFiles: %s"), *Path);
+            UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSourceFiles: Failed"));
             FPlatformProcess::CloseProc(Proc);
             return true;
         }
@@ -150,18 +105,9 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
     return false;
 }
 
-bool FCLionSourceCodeAccessor::AddSourceFiles(const TArray<FString>& AbsoluteSourcePaths, const TArray<FString>& AvailableModules)
-{
-    UE_LOG(LogCLionAccessor, Warning, TEXT("CLion: ADD SOURCE FILES"));
-    // Add to CMakeLists.txt
-	return true;
-}
-
 bool FCLionSourceCodeAccessor::SaveAllOpenDocuments() const
 {
-    UE_LOG(LogCLionAccessor, Warning, TEXT("CLion: SAVE ALL"));
-    // Save All ?
-    //UE_LOG(LogCLionAccessor, Error, TEXT("%s"), *FString([ExecutionError description]));
+    // TODO: Implement saving remotely?
     return true;
 }
 
@@ -169,8 +115,6 @@ void FCLionSourceCodeAccessor::Tick(const float DeltaTime)
 {
 
 }
-
-
 
 
 #undef LOCTEXT_NAMESPACE

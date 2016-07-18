@@ -12,13 +12,22 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+    virtual bool SupportsDynamicReloading() override;
 
-    void ClickGenerateProjectFiles();
     FCLionSourceCodeAccessor& GetAccessor();
 
     void AddMenuOptions(FMenuBuilder& MenuBuilder);
 
+
 private:
     TSharedPtr<FExtender> MainMenuExtender;
 	FCLionSourceCodeAccessor CLionSourceCodeAccessor;
+
+    void RegisterSettings();
+    void RegisterMenu();
+	void UnregisterSettings();
+	void UnregisterMenu();
+
+    void HandleGenerateProjectFiles();
+    bool HandleSettingsSaved();
 };

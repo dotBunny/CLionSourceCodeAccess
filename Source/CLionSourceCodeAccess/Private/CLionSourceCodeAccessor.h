@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "CLionSourceCodeAccessPrivatePCH.h"
 #include "ISourceCodeAccessor.h"
+#include "CLionSettings.h"
 
 class FCLionSourceCodeAccessor : public ISourceCodeAccessor
 {
@@ -28,21 +30,6 @@ public:
 	void GenerateProjectFile();
 
 	/**
-	 * Get the path to the CLion executable
-	 */
-	FString GetCLionExecutable() const;
-
-	/**
-	 * Check if CLion is already running
-	 */
-	bool IsIDERunning();
-
-	/**
-	 * Open the CLion IDE, called from File ->Open CLion
-	 */
-	void OpenCLion();
-
-	/**
  	* Deinitialize the accessor.
  	*/
 	void Shutdown();
@@ -54,10 +41,8 @@ public:
 
 private:
 
-	mutable FString CachedSolutionPath;
-	mutable FString CachedCLionPath;
-
-	bool CanRunCLion;
-
-	FString GetSolutionPath() const;
+	/**
+     * A local reference to the Settings object
+     */
+    UCLionSettings* Settings;
 };

@@ -29,5 +29,6 @@ private:
 	void UnregisterMenu();
 
     void HandleGenerateProjectFiles();
+	void HandleOpenCLion();
     bool HandleSettingsSaved();
 };

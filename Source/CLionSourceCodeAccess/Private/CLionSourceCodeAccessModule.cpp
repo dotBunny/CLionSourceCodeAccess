@@ -114,6 +114,12 @@ void FCLionSourceCodeAccessModule::AddMenuOptions(FMenuBuilder& MenuBuilder)
             FSlateIcon(),
             FUIAction(FExecuteAction::CreateRaw(this, &FCLionSourceCodeAccessModule::HandleGenerateProjectFiles)));
 
+    MenuBuilder.AddMenuEntry(
+            LOCTEXT("CLionMenuOpenCLionLabel", "Open CLion"),
+            LOCTEXT("CLionMenuOpenCLionTooltip", "Generates the CMakeList file, and opens CLion."),
+            FSlateIcon(),
+            FUIAction(FExecuteAction::CreateRaw(this, &FCLionSourceCodeAccessModule::HandleOpenCLion)));
+
     MenuBuilder.EndSection();
 }
 
@@ -135,6 +141,10 @@ bool FCLionSourceCodeAccessModule::HandleSettingsSaved()
 void FCLionSourceCodeAccessModule::HandleGenerateProjectFiles()
 {
     CLionSourceCodeAccessor.GenerateProjectFile();
+}
+void FCLionSourceCodeAccessModule::HandleOpenCLion()
+{
+    CLionSourceCodeAccessor.OpenSolution();
 }
 
 FCLionSourceCodeAccessor& FCLionSourceCodeAccessModule::GetAccessor()

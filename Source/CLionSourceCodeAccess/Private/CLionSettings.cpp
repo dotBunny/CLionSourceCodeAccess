@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 
 static const char* CMakeListDefault =
-        "cmake_minimum_required (VERSION 2.8.8)\n"
+        "cmake_minimum_required (VERSION 3.3)\n"
         "project (UnrealEngine)\n"
         "MACRO(HEADER_DIRECTORIES base_path return_list)\n"
         "   FILE(GLOB_RECURSE new_list ${base_path}/*.h)\n"

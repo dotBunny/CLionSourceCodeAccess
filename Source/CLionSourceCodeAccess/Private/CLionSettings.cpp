@@ -51,7 +51,7 @@ static const char* CMakeListDefault =
 
         "HEADER_DIRECTORIES(\"<<UE_SOURCE>>\" UnrealSource)\n"
         "HEADER_DIRECTORIES(\"<<UE_PLUGINS>>\" UnrealPlugins)\n"
-        "HEADER_DIRECTORIES(\"<<UE_INTERMEDIATE>>Build<<DIRECTORY_SEPARATOR>><<PLATFORM_CODE>>\" UnrealIntermediate)\n"
+        "HEADER_DIRECTORIES(\"<<UE_INTERMEDIATE>><<DIRECTORY_SEPARATOR>>Build<<DIRECTORY_SEPARATOR>><<PLATFORM_CODE>>\" UnrealIntermediate)\n"
         "include_directories(${UnrealSource})\n"
         "include_directories(${UnrealPlugins})\n"
         "include_directories(${UnrealIntermediate})\n"

@@ -17,7 +17,7 @@ static const char* CMakeListDefault =
         "set(BUILD mono \"<<UE_BUILDTOOL>>\")\n"
 
         // Set Platform Flag (for path mapping)
-        "set(platform \"<<PLATFORM>>\")\n
+        "set(platform \"<<PLATFORM>>\")\n"
 
         // Define Header Search Macro
         "macro(HEADER_DIRECTORIES base_path return_list)\n"
@@ -367,7 +367,7 @@ bool UCLionSettings::OutputCMakeList()
     }
 
     // Platform Specific
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<DIRECTORY_SEPARATOR>>")*DirectorySeparator);
+    OutputTemplate = OutputTemplate.Replace(TEXT("<<DIRECTORY_SEPARATOR>>"), *DirectorySeparator);
     OutputTemplate = OutputTemplate.Replace(TEXT("<<PLATFORM>>"),*PlatformName);
     OutputTemplate = OutputTemplate.Replace(TEXT("<<PLATFORM_CODE>>"),*PlatformCode);
 

@@ -4,21 +4,29 @@
 #include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSettings.generated.h"
 
-UCLASS(config = Editor, defaultconfig)
+UCLASS(config = EditorUserSettings, defaultconfig)
 class UCLionSettings : public UObject
 {
     GENERATED_UCLASS_BODY()
 
-    UPROPERTY(Config, EditAnywhere, Category="CLionSetup", Meta=(DisplayName="Path To CLion Executable"))
+    UPROPERTY(Config, EditAnywhere, Category="CLion", Meta=(DisplayName="Path To CLion Executable"))
     FFilePath CLionPath;
 
-    UPROPERTY(Config, EditAnywhere, Category="ProjectSetup", Meta=(DisplayName="Project Folder"))
+    UPROPERTY(Config, EditAnywhere, Category="Compiler", Meta=(DisplayName="Path To CLang++ Executable"))
+    FFilePath CLangXXPath;
+
+    UPROPERTY(Config, EditAnywhere, Category="Compiler", Meta=(DisplayName="Path To CLang Executable"))
+    FFilePath CLangPath;
+
+    UPROPERTY(Config, EditAnywhere, Category="Project", Meta=(DisplayName="Project Root Folder"))
     FDirectoryPath ProjectPath;
 
-    UPROPERTY(Config, EditAnywhere, Category="ProjectSetup", Meta=(DisplayName="Unreal Engine Source Folder"))
+
+    UPROPERTY(Config, EditAnywhere, Category="Project", Meta=(DisplayName="Unreal Engine Root Folder"))
     FDirectoryPath EnginePath;
 
-    UPROPERTY(Config, EditAnywhere, Category="ProjectSetup", Meta=(DisplayName="CMakeList Template"))
+
+    UPROPERTY(Config, EditAnywhere, Category="CMake", Meta=(DisplayName="Template",MultiLine="true"))
     FText CMakeTemplate;
 
 
@@ -32,6 +40,9 @@ private:
     FString PreviousProjectPath;
     FString PreviousEnginePath;
     FString PreviousCLionPath;
+    FString PreviousCLangPath;
+    FString PreviousCLangXXPath;
+
     FText PreviousCMakeTemplate;
 
     bool CheckSetup();

@@ -106,7 +106,6 @@ UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
     FPlatformMisc::GetEnvironmentVariable(TEXT("CLANGXXPATH"), ConfigCLangXXPath, MAX_PATH);
     this->CLangXXPath.FilePath = FString(ConfigCLangXXPath);
 
-    USceneComponent->dfd
     // CLang Path
     TCHAR ConfigCLangPath[MAX_PATH];
     FPlatformMisc::GetEnvironmentVariable(TEXT("CLANGPATH"), ConfigCLangPath, MAX_PATH);

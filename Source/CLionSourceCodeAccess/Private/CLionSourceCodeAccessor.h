@@ -45,4 +45,9 @@ private:
      * A local reference to the Settings object
      */
     UCLionSettings* Settings;
+
+	/**
+	 * Instruct UnrealBuildTool to generate a CodeLite project, then convert it to CMakeList
+	 */
+	void GenerateFromCodeLiteProject();
 };

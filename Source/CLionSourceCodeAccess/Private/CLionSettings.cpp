@@ -5,116 +5,10 @@
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 
-// We cant have # comments in the template as it gets saved in an ini and it screws that up royally
-static const char* CMakeListDefault =
-        // Establish the minimum version of CMake
-        "cmake_minimum_required (VERSION 3.3)\n"
-
-        // Name the project the normal generated project name
-        "project (UE4)\n"
-
-        // Define the path to the build tool
-        "set(BUILD mono \"<<UE_BUILDTOOL>>\")\n"
-
-        // Set Platform Flag (for path mapping)
-        "set(platform \"<<PLATFORM>>\")\n"
-
-        // Define Header Search Macro
-        "macro(HEADER_DIRECTORIES base_path return_list)\n"
-        "   file(GLOB_RECURSE new_list ${base_path}/*.h)\n"
-        "   string(LENGTH ${base_path} base_length)\n"
-        "   set(dir_list \"\")\n"
-        "   foreach(file_path ${new_list})\n"
-        "       get_filename_component(dir_path ${file_path} DIRECTORY)\n"
-        "       if (NOT ${dir_path} IN_LIST dir_list)\n"
-        "           SET(dir_list ${dir_list} ${dir_path})\n"
-        "       endif()\n"
-        "       set(loop 1)\n"
-        "       set(parent_dir ${dir_path})\n"
-        "       while(loop GREATER 0)\n"
-        "           get_filename_component(parent_dir ${parent_dir} DIRECTORY)\n"
-        "           string(LENGTH ${parent_dir} parent_length)\n"
-        "           if (NOT parent_length LESS base_length)\n"
-        "               if (NOT ${parent_dir} IN_LIST dir_list)\n"
-        "                   set(dir_list ${dir_list} ${parent_dir})\n"
-        "               endif()\n"
-        "           else()\n"
-        "               set(loop 0)\n"
-        "           endif()\n"
-        "       endwhile(loop GREATER 0)\n"
-        "   endforeach()\n"
-        "   set(${return_list} ${dir_list})\n"
-        "endmacro()\n"
-
-        // Determine directories we're going to include for reference\n"
-        "HEADER_DIRECTORIES(\"<<PROJECT_ROOT>>\" ProjectHeaders)\n"
-
-        "HEADER_DIRECTORIES(\"<<UE_SOURCE>>\" UnrealSource)\n"
-        "HEADER_DIRECTORIES(\"<<UE_PLUGINS>>\" UnrealPlugins)\n"
-        "HEADER_DIRECTORIES(\"<<UE_INTERMEDIATE>><<DIRECTORY_SEPARATOR>>Build<<DIRECTORY_SEPARATOR>><<PLATFORM_CODE>>\" UnrealIntermediate)\n"
-        "include_directories(${UnrealSource})\n"
-        "include_directories(${UnrealPlugins})\n"
-        "include_directories(${UnrealIntermediate})\n"
-
-        "include_directories(${ProjectHeaders})\n"
-
-//        "MACRO(CONFIG_FILES base_path return_list)\n"
-//        "ENDMACRO()\n"
-
-
-        // Handle Our Project Files Specifically
-        "file(GLOB_RECURSE Source Source<<DIRECTORY_SEPARATOR>>*.cpp)\n"
-        "file(GLOB_RECURSE SourceHeaders Source<<DIRECTORY_SEPARATOR>>*.h)\n"
-        "file(GLOB_RECURSE Plugins Plugins<<DIRECTORY_SEPARATOR>>*.cpp)\n"
-        "file(GLOB_RECURSE PluginsHeaders Plugins<<DIRECTORY_SEPARATOR>>*.h)\n"
-        "file(GLOB_RECURSE Intermediate Intermediate<<DIRECTORY_SEPARATOR>>Build<<DIRECTORY_SEPARATOR>><<PLATFORM_CODE>><<DIRECTORY_SEPARATOR>>*.cpp)\n"
-        "file(GLOB_RECURSE IntermediateHeaders Intermediate<<DIRECTORY_SEPARATOR>>Build<<DIRECTORY_SEPARATOR>><<PLATFORM_CODE>><<DIRECTORY_SEPARATOR>>*.h)\n"
-
-//        "add_custom_target(UE4Editor-<<PLATFORM>>-DebugGame ${BUILD}  UE4Editor <<PLATFORM>> DebugGame $(ARGS))\n"
-//        "add_custom_target(UE4Editor-<<PLATFORM>>-Shipping ${BUILD}  UE4Editor <<PLATFORM>> Shipping $(ARGS))\n"
-//        "add_custom_target(UE4Editor ${BUILD}  UE4Editor <<PLATFORM>> Development $(ARGS) SOURCES ${SOURCE_FILES} ${HEADER_FILES} ${CONFIG_FILES})\n"
-//        "add_custom_target(UE4Game-<<PLATFORM>>-DebugGame ${BUILD}  UE4Game <<PLATFORM>> DebugGame $(ARGS))\n"
-//        "add_custom_target(UE4Game-<<PLATFORM>>-Shipping ${BUILD}  UE4Game <<PLATFORM>> Shipping $(ARGS))\n"
-//        "add_custom_target(UE4Game ${BUILD}  UE4Game <<PLATFORM>> Development $(ARGS) SOURCES ${SOURCE_FILES} ${HEADER_FILES} ${CONFIG_FILES})\n"
-//        "add_custom_target(<<PROJECT_NAME>>-<<PLATFORM>>-DebugGame ${BUILD}  -project=\"<<PROJECT_FILE>>\" <<PROJECT_NAME>> <<PLATFORM>> DebugGame $(ARGS))\n"
-//        "add_custom_target(<<PROJECT_NAME>>-<<PLATFORM>>-Shipping ${BUILD}  -project=\"<<PROJECT_FILE>>\" <<PROJECT_NAME>> <<PLATFORM>> Shipping $(ARGS))\n"
-//        "add_custom_target(<<PROJECT_NAME>> ${BUILD}  -project=\"<<PROJECT_FILE>>\" <<PROJECT_NAME>> <<PLATFORM>> Development $(ARGS) SOURCES ${SOURCE_FILES} ${HEADER_FILES} ${CONFIG_FILES})\n"
-//        "add_custom_target(<<PROJECT_NAME>>Editor-<<PLATFORM>>-DebugGame ${BUILD}  -project=\"<<PROJECT_FILE>>\" <<PROJECT_NAME>>Editor <<PLATFORM>> DebugGame $(ARGS))\n"
-//        "add_custom_target(<<PROJECT_NAME>>Editor-<<PLATFORM>>-Shipping ${BUILD}  -project=\"<<PROJECT_FILE>>\" <<PROJECT_NAME>>Editor <<PLATFORM>> Shipping $(ARGS))\n"
-//        "add_custom_target(<<PROJECT_NAME>>Editor ${BUILD}  -project=\"<<PROJECT_FILE>>\" <<PROJECT_NAME>>Editor <<PLATFORM>> Development $(ARGS) SOURCES ${SOURCE_FILES} ${HEADER_FILES} ${CONFIG_FILES})\n"
-
-        "add_executable(UnrealEngine ${Source} ${SourceHeaders} ${Intermediate} ${IntermediateHeaders} ${Plugins} ${PluginsHeaders})\n";
-
-
 UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
         : Super(ObjectInitializer)
 {
-    // TODO: Default Values
-
-    // Project Folder
-    TCHAR ConfigProjectPath[MAX_PATH];
-    FPlatformMisc::GetEnvironmentVariable(TEXT("CLIONPROJECTPATH"), ConfigProjectPath, MAX_PATH);
-    this->ProjectPath.Path = FString(ConfigProjectPath);
-
-    // Unreal Source Folder
-    TCHAR ConfigEnginePath[MAX_PATH];
-    FPlatformMisc::GetEnvironmentVariable(TEXT("CLIONENGINEPATH"), ConfigEnginePath, MAX_PATH);
-    this->EnginePath.Path = FString(ConfigEnginePath);
-
-    // CLang++ Path
-    TCHAR ConfigCLangXXPath[MAX_PATH];
-    FPlatformMisc::GetEnvironmentVariable(TEXT("CLANGXXPATH"), ConfigCLangXXPath, MAX_PATH);
-    this->CLangXXPath.FilePath = FString(ConfigCLangXXPath);
-
-    // CLang Path
-    TCHAR ConfigCLangPath[MAX_PATH];
-    FPlatformMisc::GetEnvironmentVariable(TEXT("CLANGPATH"), ConfigCLangPath, MAX_PATH);
-    this->CLangPath.FilePath = FString(ConfigCLangPath);
-
-    // CLion App Path
-    TCHAR ConfigPath[MAX_PATH];
-    FPlatformMisc::GetEnvironmentVariable(TEXT("CLIONPATH"), ConfigPath, MAX_PATH);
-    this->CLionPath.FilePath = FString(ConfigPath);
+    // Default CLion Path
     if ( this->CLionPath.FilePath.IsEmpty())
     {
 #if PLATFORM_MAC
@@ -124,18 +18,14 @@ UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
 #endif
     }
 
-
-    // Handle Template
-    TCHAR MakeListTemplate[2000];
-    FPlatformMisc::GetEnvironmentVariable(TEXT("CLIONMAKELIST"), MakeListTemplate, 2000);
-    FString MakeListString = FString(MakeListTemplate);
-    if ( MakeListString.IsEmpty() )
+#if PLATFORM_MAC
+    if (this->MonoPath.FilePath.IsEmpty() )
     {
-        MakeListString = FString(CMakeListDefault);
+     this->MonoPath.FilePath = TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono");
     }
-    this->CMakeTemplate = FText::FromString(MakeListString);
+#endif
 
-
+    // TODO: Other Default Values
 
     this->bRequestRefresh = false;
 
@@ -145,9 +35,12 @@ UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
 
 bool UCLionSettings::CheckSetup()
 {
-    if ( this->ProjectPath.Path.IsEmpty() ||
-         this->EnginePath.Path.IsEmpty() ||
-         this->CLionPath.FilePath.IsEmpty())
+    if (
+            this->CLionPath.FilePath.IsEmpty() ||
+            this->ProjectPath.Path.IsEmpty() ||
+            this->ProjectFile.FilePath.IsEmpty() ||
+            this->ProjectName.IsEmpty() ||
+            this->UnrealBuildToolPath.FilePath.IsEmpty())
     {
         this->bSetupComplete = false;
     }
@@ -159,17 +52,119 @@ bool UCLionSettings::CheckSetup()
 #if WITH_EDITOR
 void UCLionSettings::PreEditChange(UProperty* PropertyAboutToChange)
 {
-    PreviousEnginePath = this->EnginePath.Path;
-    PreviousProjectPath = this->ProjectPath.Path;
     PreviousCLionPath = this->CLionPath.FilePath;
+    PreviousUnrealBuildToolPath = this->UnrealBuildToolPath.FilePath;
+    PreviousProjectPath = this->ProjectPath.Path;
+    PreviousProjectFile = this->ProjectFile.FilePath;
+    PreviousProjectName= this->ProjectName.ToString();
     PreviousCLangPath = this->CLangPath.FilePath;
     PreviousCLangXXPath = this->CLangXXPath.FilePath;
+    PreviousMonoPath = this->MonoPath.FilePath;
 }
 
 void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& PropertyChangedEvent )
 {
     const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
     const FName MemberPropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
+
+    // CLion Executable Path Check
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,CLionPath) )
+    {
+        this->CLionPath.FilePath = FPaths::ConvertRelativePathToFull(this->CLionPath.FilePath);
+        this->CLionPath.FilePath = this->CLionPath.FilePath.Trim();
+        this->CLionPath.FilePath = CLionPath.FilePath.TrimTrailing();
+
+        FText FailReason;
+
+#if PLATFORM_MAC
+        if ( CLionPath.FilePath.EndsWith(TEXT("clion.app"))) {
+            CLionPath.FilePath = CLionPath.FilePath.Append(TEXT("/Contents/MacOS/clion"));
+        }
+
+        if ( !CLionPath.FilePath.Contains(TEXT("clion.app")))
+        {
+            FailReason = LOCTEXT( "CLionSelectMacApp", "Please select the CLion app" );
+            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
+            CLionPath.FilePath = PreviousCLionPath;
+            return;
+        }
+#endif
+
+        if ( CLionPath.FilePath == PreviousCLionPath ) return;
+
+        if (!FPaths::ValidatePath(CLionPath.FilePath, &FailReason))
+        {
+            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
+            CLionPath.FilePath = PreviousCLionPath;
+            return;
+        }
+
+        bRequestRefresh = true;
+    }
+
+    // Mono Path
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,MonoPath) )
+    {
+        MonoPath.FilePath = FPaths::ConvertRelativePathToFull(MonoPath.FilePath);
+        MonoPath.FilePath = MonoPath.FilePath.Trim();
+        MonoPath.FilePath = MonoPath.FilePath.TrimTrailing();
+
+        FText FailReason;
+
+        if ( MonoPath.FilePath == this->PreviousMonoPath ) return;
+
+        if (!FPaths::ValidatePath(MonoPath.FilePath, &FailReason))
+        {
+            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
+            MonoPath.FilePath = this->PreviousMonoPath;
+            return;
+        }
+
+        bRequestRefresh = true;
+    }
+
+    // Post Check UBT
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,UnrealBuildToolPath) )
+    {
+        UnrealBuildToolPath.FilePath = FPaths::ConvertRelativePathToFull(UnrealBuildToolPath.FilePath);
+        UnrealBuildToolPath.FilePath = UnrealBuildToolPath.FilePath.Trim();
+        UnrealBuildToolPath.FilePath = UnrealBuildToolPath.FilePath.TrimTrailing();
+
+        FText FailReason;
+
+        if ( UnrealBuildToolPath.FilePath == this->PreviousUnrealBuildToolPath ) return;
+
+        if (!FPaths::ValidatePath(UnrealBuildToolPath.FilePath, &FailReason))
+        {
+            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
+            UnrealBuildToolPath.FilePath = this->PreviousUnrealBuildToolPath;
+            return;
+        }
+
+        bRequestRefresh = true;
+    }
+
+    // Post Check Project File
+    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,ProjectFile) )
+    {
+        ProjectFile.FilePath = FPaths::ConvertRelativePathToFull(ProjectFile.FilePath);
+        ProjectFile.FilePath = ProjectFile.FilePath.Trim();
+        ProjectFile.FilePath = ProjectFile.FilePath.TrimTrailing();
+
+        FText FailReason;
+
+        if ( ProjectFile.FilePath == this->PreviousProjectFile ) return;
+
+        if (!FPaths::ValidatePath(ProjectFile.FilePath, &FailReason))
+        {
+            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
+            ProjectFile.FilePath = this->PreviousProjectFile;
+            return;
+        }
+
+        bRequestRefresh = true;
+    }
+
 
     if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, ProjectPath) )
     {
@@ -191,32 +186,6 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
         {
             FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("Please enter a valid project path"));
             ProjectPath.Path = PreviousProjectPath;
-            return;
-        }
-
-        bRequestRefresh = true;
-    }
-
-    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, EnginePath) )
-    {
-        EnginePath.Path = FPaths::ConvertRelativePathToFull(EnginePath.Path);
-        EnginePath.Path = EnginePath.Path.Trim();
-        EnginePath.Path = EnginePath.Path.TrimTrailing();
-
-        if ( EnginePath.Path == PreviousEnginePath ) return;
-
-        FText FailReason;
-        if (!FPaths::ValidatePath(EnginePath.Path, &FailReason))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-            EnginePath.Path = PreviousEnginePath;
-            return;
-        }
-
-        if (!FPaths::DirectoryExists(EnginePath.Path))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("Please enter a valid engine path"));
-            EnginePath.Path = PreviousEnginePath;
             return;
         }
 
@@ -261,41 +230,6 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
         bRequestRefresh = true;
     }
 
-    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,CLionPath) )
-    {
-        CLionPath.FilePath = FPaths::ConvertRelativePathToFull(CLionPath.FilePath);
-        CLionPath.FilePath = CLionPath.FilePath.Trim();
-        CLionPath.FilePath = CLionPath.FilePath.TrimTrailing();
-
-        FText FailReason;
-
-#if PLATFORM_MAC
-        if ( CLionPath.FilePath.EndsWith(TEXT("clion.app"))) {
-            CLionPath.FilePath = CLionPath.FilePath.Append(TEXT("/Contents/MacOS/clion"));
-        }
-
-        if ( !CLionPath.FilePath.Contains(TEXT("clion.app")))
-        {
-            FailReason = LOCTEXT( "CLionSelectMacApp", "Please select the CLion app" );
-            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-            CLionPath.FilePath = PreviousCLionPath;
-            return;
-        }
-#endif
-
-        if ( CLionPath.FilePath == PreviousCLionPath ) return;
-
-
-        if (!FPaths::ValidatePath(CLionPath.FilePath, &FailReason))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-            CLionPath.FilePath = PreviousCLionPath;
-            return;
-        }
-
-        bRequestRefresh = true;
-    }
-
     this->CheckSetup();
 }
 #endif
@@ -304,78 +238,4 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
 bool UCLionSettings::IsSetup()
 {
     return this->bSetupComplete;
-}
-
-bool UCLionSettings::OutputCMakeList()
-{
-    // mono /Users/Shared/UnrealEngine/4.12/Engine/Binaries/DotNET/UnrealBuildTool.exe "/Users/reapazor/Workspaces/dotBunny/Dethol/Game/Project/Dethol".uproject -Game Dethol -OnlyPublic -CMakeFile -CurrentPlatform -NoShippingConfigs
-
-    // Create our directory separator based on our platform
-    // Untest on non mac platforms
-#if PLATFORM_WINDOWS
-    FString DirectorySeparator = TEXT("\");
-    FString PlatformName = TEXT("Windows");
-    FString PlatformCode = TEXT("Win64");
-#elif PLATFORM_LINUX
-    FString DirectorySeparator = TEXT("/");
-    FString PlatformName = TEXT("Linux");
-    FString PlatformCode = TEXT("Linux");
-#else
-    FString DirectorySeparator = TEXT("/");
-    FString PlatformName = TEXT("Mac");
-    FString PlatformCode = TEXT("Mac");
-#endif
-
-
-    // Make a local copy of our template file
-    FString OutputTemplate = this->CMakeTemplate.ToString();
-    FString OutputPath = this->ProjectPath.Path + DirectorySeparator + "CMakeLists.txt";
-
-    // Handle Project Folder
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<PROJECT_ROOT>>"), *this->ProjectPath.Path);
-
-    // Handle Engine Folders
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<UE_ROOT>>"), *this->EnginePath.Path);
-
-    FString UnrealSourcePath = this->EnginePath.Path + DirectorySeparator + TEXT("Source");
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<UE_SOURCE>>"), *UnrealSourcePath);
-
-    FString UnrealPluginsPath = this->EnginePath.Path + DirectorySeparator + TEXT("Plugins");
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<UE_PLUGINS>>"), *UnrealPluginsPath);
-
-    FString UnrealIntermediatePath = this->EnginePath.Path + DirectorySeparator + TEXT("Intermediate");
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<UE_INTERMEDIATE>>"), *UnrealIntermediatePath);
-
-    // Unreal Build Tool Path
-    FString UnrealBuildToolPath = this->EnginePath.Path + DirectorySeparator + TEXT("Binaries") + DirectorySeparator + TEXT("DotNET") + DirectorySeparator + TEXT("UnrealBuildTool.exe");
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<UE_BUILDTOOL>>"), *UnrealBuildToolPath);
-
-    // Handle CLang++ / CLang (If Defined)
-    if ( !this->CLangXXPath.FilePath.IsEmpty() )
-    {
-        FString CLangXXSetting = TEXT("set(CMAKE_CXX_COMPILER \"");
-        CLangXXSetting += this->CLangXXPath.FilePath;
-        CLangXXSetting += "\")\n";
-        OutputTemplate = OutputTemplate.Append(CLangXXSetting);
-    }
-    if ( !this->CLangPath.FilePath.IsEmpty() )
-    {
-        FString CLangSetting = TEXT("set(CMAKE_C_COMPILER \"");
-        CLangSetting += this->CLangPath.FilePath;
-        CLangSetting += "\")\n";
-        OutputTemplate = OutputTemplate.Append(CLangSetting);
-    }
-
-    // Platform Specific
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<DIRECTORY_SEPARATOR>>"), *DirectorySeparator);
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<PLATFORM>>"),*PlatformName);
-    OutputTemplate = OutputTemplate.Replace(TEXT("<<PLATFORM_CODE>>"),*PlatformCode);
-
-
-    // Write out the file
-    if (FFileHelper::SaveStringToFile(OutputTemplate, *OutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
-        return true;
-    }
-
-    return false;
 }

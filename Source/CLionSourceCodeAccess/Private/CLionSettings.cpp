@@ -1,7 +1,6 @@
 // Copyright 2016 dotBunny, Inc. All Rights Reserved.
 
 #include "CLionSourceCodeAccessPrivatePCH.h"
-#include "Casts.h"
 #include "CLionSettings.h"
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
@@ -10,7 +9,6 @@ UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
 		: Super(ObjectInitializer)
 {
 
-	CheckSettings();
 }
 
 bool UCLionSettings::CheckSettings()
@@ -82,20 +80,32 @@ bool UCLionSettings::IsSetup()
 
 void UCLionSettings::PreEditChange(UProperty *PropertyAboutToChange)
 {
+//	UE_LOG(LogTemp, Error, TEXT("PRE PROCESS"));
+//	TMap<FString, FString> PropertyValues;
+//	PropertyAboutToChange->GetNativePropertyValues(PropertyValues);
+//
+//	for ( TMap<FString,FString>::TIterator It(PropertyValues); It; ++It )
+//	{
+//		FString key = *It.Key();
+//		FString value = *It.Value();
+//		UE_LOG(LogTemp, Error, TEXT("%s %s"), *key, *value);
+//	}
 
-//	FMyChildStruct* tempChild = Cast<FMyChildStruct>(&childVersion);
 	this->PreviousCCompiler = this->CCompiler.FilePath;
 	this->PreviousMono = this->Mono.FilePath;
 	this->PreviousCLion = this->CLion.FilePath;
 	this->PreviousCXXCompiler = this->CXXCompiler.FilePath;
 
-	//this->PreviousData = *Cast<FString>(&PropertyAboutToChange);
+	//this->PreviousData = *Cast<FString>(&PyropertyAboutToChange);
 }
 
 void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &PropertyChangedEvent)
 {
 	const FName MemberPropertyName = (PropertyChangedEvent.Property != nullptr)
 	                                 ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
+
+
+	UE_LOG(LogTemp, Error, TEXT("POST PROCESS"));
 
 	// CLion Executable Path Check
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CLion))

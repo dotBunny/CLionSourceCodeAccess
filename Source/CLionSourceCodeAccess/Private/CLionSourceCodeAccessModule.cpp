@@ -75,6 +75,7 @@ void FCLionSourceCodeAccessModule::ShutdownModule()
         this->UnregisterSettings();
     }
 
+
     // unbind provider from editor
     IModularFeatures::Get().UnregisterModularFeature(TEXT("SourceCodeAccessor"), &CLionSourceCodeAccessor);
 }

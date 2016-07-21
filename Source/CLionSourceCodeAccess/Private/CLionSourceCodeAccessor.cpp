@@ -297,6 +297,8 @@ void FCLionSourceCodeAccessor::Startup()
 {
     // Get reference to our settings object
     this->Settings = GetMutableDefault<UCLionSettings>();
+
+    this->Settings->CheckSettings();
 }
 
 bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 LineNumber, int32 ColumnNumber)

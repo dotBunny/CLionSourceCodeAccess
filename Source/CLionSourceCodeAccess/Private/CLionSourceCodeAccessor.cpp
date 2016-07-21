@@ -252,7 +252,7 @@ FString FCLionSourceCodeAccessor::GetFilesFromCodeLiteXML(FXmlNode* CurrentNode)
     FString ReturnContent = "";
 
     if ( CurrentNode->GetTag() == "File" ) {
-        ReturnContent += TEXT("\t\"") + CurrentNode->GetAttribute("Name") + TEXT("\"\n");
+        ReturnContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *CurrentNode->GetAttribute("Name")));
     }
 
     const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
@@ -299,7 +299,7 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
         return false;
     }
 
-    const FString Path = FString::Printf(TEXT("\"%s --line %d\""), *FullPath, LineNumber);
+    const FString Path = FString::Printf(TEXT("\"%s --line %d --column %d %s\""), *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), LineNumber, ColumnNumber, *FullPath);
     if(FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
         UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenFileAtLine: Failed"));

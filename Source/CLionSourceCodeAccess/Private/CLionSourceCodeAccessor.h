@@ -5,6 +5,7 @@
 
 #include "CLionSourceCodeAccessPrivatePCH.h"
 #include "ISourceCodeAccessor.h"
+#include "XmlParser.h"
 #include "CLionSettings.h"
 
 class FCLionSourceCodeAccessor : public ISourceCodeAccessor
@@ -50,4 +51,6 @@ private:
 	 * Instruct UnrealBuildTool to generate a CodeLite project, then convert it to CMakeList
 	 */
 	void GenerateFromCodeLiteProject();
+
+    FString GetFilesFromCodeLiteXML(FXmlNode* CurrentNode);
 };

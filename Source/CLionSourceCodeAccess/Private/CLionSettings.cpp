@@ -35,12 +35,7 @@ UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
 
 bool UCLionSettings::CheckSetup()
 {
-    if (
-            this->CLionPath.FilePath.IsEmpty() ||
-            this->ProjectPath.Path.IsEmpty() ||
-            this->ProjectFile.FilePath.IsEmpty() ||
-            this->ProjectName.IsEmpty() ||
-            this->UnrealBuildToolPath.FilePath.IsEmpty())
+    if (this->CLionPath.FilePath.IsEmpty())
     {
         this->bSetupComplete = false;
     }
@@ -53,10 +48,6 @@ bool UCLionSettings::CheckSetup()
 void UCLionSettings::PreEditChange(UProperty* PropertyAboutToChange)
 {
     PreviousCLionPath = this->CLionPath.FilePath;
-    PreviousUnrealBuildToolPath = this->UnrealBuildToolPath.FilePath;
-    PreviousProjectPath = this->ProjectPath.Path;
-    PreviousProjectFile = this->ProjectFile.FilePath;
-    PreviousProjectName= this->ProjectName.ToString();
     PreviousCLangPath = this->CLangPath.FilePath;
     PreviousCLangXXPath = this->CLangXXPath.FilePath;
     PreviousMonoPath = this->MonoPath.FilePath;
@@ -117,75 +108,6 @@ void UCLionSettings::PostEditChangeProperty( struct FPropertyChangedEvent& Prope
         {
             FMessageDialog::Open(EAppMsgType::Ok, FailReason);
             MonoPath.FilePath = this->PreviousMonoPath;
-            return;
-        }
-
-        bRequestRefresh = true;
-    }
-
-    // Post Check UBT
-    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,UnrealBuildToolPath) )
-    {
-        UnrealBuildToolPath.FilePath = FPaths::ConvertRelativePathToFull(UnrealBuildToolPath.FilePath);
-        UnrealBuildToolPath.FilePath = UnrealBuildToolPath.FilePath.Trim();
-        UnrealBuildToolPath.FilePath = UnrealBuildToolPath.FilePath.TrimTrailing();
-
-        FText FailReason;
-
-        if ( UnrealBuildToolPath.FilePath == this->PreviousUnrealBuildToolPath ) return;
-
-        if (!FPaths::ValidatePath(UnrealBuildToolPath.FilePath, &FailReason))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-            UnrealBuildToolPath.FilePath = this->PreviousUnrealBuildToolPath;
-            return;
-        }
-
-        bRequestRefresh = true;
-    }
-
-    // Post Check Project File
-    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings,ProjectFile) )
-    {
-        ProjectFile.FilePath = FPaths::ConvertRelativePathToFull(ProjectFile.FilePath);
-        ProjectFile.FilePath = ProjectFile.FilePath.Trim();
-        ProjectFile.FilePath = ProjectFile.FilePath.TrimTrailing();
-
-        FText FailReason;
-
-        if ( ProjectFile.FilePath == this->PreviousProjectFile ) return;
-
-        if (!FPaths::ValidatePath(ProjectFile.FilePath, &FailReason))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-            ProjectFile.FilePath = this->PreviousProjectFile;
-            return;
-        }
-
-        bRequestRefresh = true;
-    }
-
-
-    if ( MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, ProjectPath) )
-    {
-        ProjectPath.Path = FPaths::ConvertRelativePathToFull(ProjectPath.Path);
-        ProjectPath.Path = ProjectPath.Path.Trim();
-        ProjectPath.Path = ProjectPath.Path.TrimTrailing();
-
-        if ( ProjectPath.Path == PreviousProjectPath ) return;
-
-        FText FailReason;
-        if (!FPaths::ValidatePath(ProjectPath.Path, &FailReason))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-            ProjectPath.Path = PreviousProjectPath;
-            return;
-        }
-
-        if (!FPaths::DirectoryExists(ProjectPath.Path))
-        {
-            FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("Please enter a valid project path"));
-            ProjectPath.Path = PreviousProjectPath;
             return;
         }
 

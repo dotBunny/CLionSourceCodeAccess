@@ -11,9 +11,9 @@ namespace UnrealBuildTool.Rules
 				{
 					"Core",
 					"SourceCodeAccess",
-					// "MainFrame",
 					"DesktopPlatform",
-                    "LevelEditor"
+                    "LevelEditor",
+                    "XmlParser"
 				}
 			);
 
@@ -29,7 +29,8 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "WorkspaceMenuStructure",
                     "Projects",
-                    "PropertyEditor"
+                    "PropertyEditor",
+
                 });
 		}
 	}

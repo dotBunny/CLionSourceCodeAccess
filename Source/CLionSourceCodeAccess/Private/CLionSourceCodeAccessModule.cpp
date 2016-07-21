@@ -32,11 +32,6 @@ void FCLionSourceCodeAccessModule::AddMenuOptions(FMenuBuilder& MenuBuilder)
     MenuBuilder.EndSection();
 }
 
-FCLionSourceCodeAccessor& FCLionSourceCodeAccessModule::GetAccessor()
-{
-    return CLionSourceCodeAccessor;
-}
-
 void FCLionSourceCodeAccessModule::HandleGenerateProjectFiles()
 {
     CLionSourceCodeAccessor.GenerateProjectFile();

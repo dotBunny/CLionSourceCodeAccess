@@ -1,6 +1,7 @@
 // Copyright 2016 dotBunny, Inc. All Rights Reserved.
 
 #include "CLionSourceCodeAccessPrivatePCH.h"
+#include "Casts.h"
 #include "CLionSettings.h"
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
@@ -33,16 +34,14 @@ bool UCLionSettings::CheckSettings()
     {
         this->CLion.FilePath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
     }
-
-	// Mono Mac Default Locations
     if (this->Mono.FilePath.IsEmpty() )
     {
-	    if (FPaths::FileExists(TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono"))) {
+	    if (FPaths::FileExists(TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono")))
+	    {
 		    this->Mono.FilePath = TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono");
 	    }
     }
 #else
-	// Mono Linux Default Locations
 	if (this->Mono.FilePath.IsEmpty() )
 	{
 		if (FPaths::FileExists(TEXT("/usr/bin/mono")))
@@ -83,10 +82,14 @@ bool UCLionSettings::IsSetup()
 
 void UCLionSettings::PreEditChange(UProperty *PropertyAboutToChange)
 {
-	PreviousCLion = this->CLion.FilePath;
-	PreviousCCompiler = this->CCompiler.FilePath;
-	PreviousCXXComplier = this->CXXCompiler.FilePath;
-	PreviousMono = this->Mono.FilePath;
+
+//	FMyChildStruct* tempChild = Cast<FMyChildStruct>(&childVersion);
+	this->PreviousCCompiler = this->CCompiler.FilePath;
+	this->PreviousMono = this->Mono.FilePath;
+	this->PreviousCLion = this->CLion.FilePath;
+	this->PreviousCXXCompiler = this->CXXCompiler.FilePath;
+
+	//this->PreviousData = *Cast<FString>(&PropertyAboutToChange);
 }
 
 void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &PropertyChangedEvent)
@@ -95,47 +98,58 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 	                                 ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
 	// CLion Executable Path Check
-	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CLion)) {
+	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CLion))
+	{
 		this->CLion.FilePath = FPaths::ConvertRelativePathToFull(this->CLion.FilePath);
 		this->CLion.FilePath = this->CLion.FilePath.Trim();
-		this->CLion.FilePath = CLion.FilePath.TrimTrailing();
+		this->CLion.FilePath = this->CLion.FilePath.TrimTrailing();
 
 		FText FailReason;
 
 #if PLATFORM_MAC
-		if (CLion.FilePath.EndsWith(TEXT("clion.app"))) {
-			CLion.FilePath = CLion.FilePath.Append(TEXT("/Contents/MacOS/clion"));
+		if (this->CLion.FilePath.EndsWith(TEXT("clion.app")))
+		{
+			this->CLion.FilePath = this->CLion.FilePath.Append(TEXT("/Contents/MacOS/clion"));
 		}
 
-		if (!CLion.FilePath.Contains(TEXT("clion.app"))) {
+		if (!this->CLion.FilePath.Contains(TEXT("clion.app")))
+		{
 			FailReason = LOCTEXT("CLionSelectMacApp", "Please select the CLion app");
 			FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-			CLion.FilePath = PreviousCLion;
+			this->CLion.FilePath = this->PreviousCLion;
 			return;
 		}
 #endif
 
-		if (CLion.FilePath == PreviousCLion) return;
+		if (this->CLion.FilePath == this->PreviousCLion)
+		{
+			return;
+		}
 
-		if (!FPaths::ValidatePath(CLion.FilePath, &FailReason)) {
+		if (!FPaths::ValidatePath(this->CLion.FilePath, &FailReason))
+		{
 			FMessageDialog::Open(EAppMsgType::Ok, FailReason);
-			CLion.FilePath = PreviousCLion;
+			this->CLion.FilePath = this->PreviousCLion;
 			return;
 		}
 	}
 
-
 	// Mono Path
-	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, Mono)) {
+	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, Mono))
+	{
 		this->Mono.FilePath = FPaths::ConvertRelativePathToFull(this->Mono.FilePath);
 		this->Mono.FilePath = this->Mono.FilePath.Trim();
 		this->Mono.FilePath = this->Mono.FilePath.TrimTrailing();
 
 		FText FailReason;
 
-		if (this->Mono.FilePath == this->PreviousMono) return;
+		if (this->Mono.FilePath == this->PreviousMono)
+		{
+			return;
+		}
 
-		if (!FPaths::ValidatePath(this->Mono.FilePath, &FailReason)) {
+		if (!FPaths::ValidatePath(this->Mono.FilePath, &FailReason))
+		{
 			FMessageDialog::Open(EAppMsgType::Ok, FailReason);
 			this->Mono.FilePath = this->PreviousMono;
 			return;
@@ -144,14 +158,19 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 
 
 	// Check C Compiler Path
-	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CCompiler)) {
+	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CCompiler))
+	{
 		this->CCompiler.FilePath = FPaths::ConvertRelativePathToFull(this->CCompiler.FilePath);
 		this->CCompiler.FilePath = this->CCompiler.FilePath.Trim();
 		this->CCompiler.FilePath = this->CCompiler.FilePath.TrimTrailing();
 
-		if (this->CCompiler.FilePath == this->PreviousCCompiler) return;
+		if (this->CCompiler.FilePath == this->PreviousCCompiler)
+		{
+			return;
+		}
 
-		if (!FPaths::FileExists(CCompiler.FilePath)) {
+		if (!FPaths::FileExists(this->CCompiler.FilePath))
+		{
 			this->CCompiler.FilePath = this->PreviousCCompiler;
 			return;
 		}
@@ -164,10 +183,10 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 		this->CXXCompiler.FilePath = this->CXXCompiler.FilePath.Trim();
 		this->CXXCompiler.FilePath = this->CXXCompiler.FilePath.TrimTrailing();
 
-		if (this->CXXCompiler.FilePath == this->PreviousCXXComplier) return;
+		if (this->CXXCompiler.FilePath == this->PreviousCXXCompiler) return;
 
 		if (!FPaths::FileExists(CXXCompiler.FilePath)) {
-			this->CXXCompiler.FilePath = this->PreviousCXXComplier;
+			this->CXXCompiler.FilePath = this->PreviousCXXCompiler;
 			return;
 		}
 		this->bRequireRefresh = true;

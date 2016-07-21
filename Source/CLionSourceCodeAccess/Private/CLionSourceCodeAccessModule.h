@@ -14,8 +14,6 @@ public:
 	virtual void ShutdownModule() override;
     virtual bool SupportsDynamicReloading() override;
 
-    FCLionSourceCodeAccessor& GetAccessor();
-
     void AddMenuOptions(FMenuBuilder& MenuBuilder);
 
 

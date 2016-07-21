@@ -64,23 +64,28 @@ private:
      */
     bool bSetupComplete = false;
 
-    /**
-     * Cached version of C Compiler to compare against when modifying.
+	/**
+     * Cached version of C Compiler location.
      */
-    FString PreviousCCompiler;
+	FString PreviousCCompiler;
+
+	/**
+     * Cached version of CLion location.
+     */
+	FString PreviousCLion;
+
+	/**
+     * Cached version of C++ Compiler location.
+     */
+	FString PreviousCXXCompiler;
 
     /**
-     * Cached version of CLionPath to compare against when modifying.
+     * Cached version of Mono location.
      */
-    FString PreviousCLion;
-
-    /**
-     * Cached version of C++ Compiler to compare against when modifying.
-     */
-    FString PreviousCXXComplier;
-
-    /**
-    * Cached version of Mono to compare against when modifying.
-    */
     FString PreviousMono;
+
+	/**
+	 * Cached string data used while editing as a backup.
+	 */
+	FString PreviousData;
 };

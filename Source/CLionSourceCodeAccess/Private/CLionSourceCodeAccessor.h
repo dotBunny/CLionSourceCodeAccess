@@ -24,7 +24,6 @@ public:
 	virtual bool SaveAllOpenDocuments() const override;
 	virtual void Tick(const float DeltaTime) override;
 
-
 	/**
  	* Create the CMakeLists.txt File, called from File -> Refresh CMakeLists
  	*/
@@ -49,8 +48,14 @@ private:
 
 	/**
 	 * Instruct UnrealBuildTool to generate a CodeLite project, then convert it to CMakeList
+	 * @return Was the project generation successful?
 	 */
-	void GenerateFromCodeLiteProject();
+	bool GenerateFromCodeLiteProject();
 
+	/**
+	 * Recursive look at a CodeLite project file for files.
+	 * @param The root node to start looking from.
+	 * @return A usable CMake string of all files.
+	 */
     FString GetFilesFromCodeLiteXML(FXmlNode* CurrentNode);
 };

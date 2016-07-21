@@ -12,28 +12,44 @@ class UCLionSettings : public UObject
 public:
 
     /**
-     * Path to CLion executable, used when needing to launch CLion
+     * Does the project files require a refresh based on changes made to the settings?
      */
-    UPROPERTY(Config, EditAnywhere, Category="CLion", Meta=(DisplayName="Path To CLion Executable"))
-    FFilePath CLionPath;
+    bool bRequireRefresh = false;
 
     /**
-     * Path to the Mono executable
+     * Check our settings, cache results and return
+     * @return Can the plugin be used?
      */
-    UPROPERTY(Config, EditAnywhere, Category="Unreal", Meta=(DisplayName="Path To Mono Executable"))
-    FFilePath MonoPath;
+    bool CheckSettings();
 
     /**
-     * (optional) Path to CLang++ to be used in the CMakeList files as the compiler for C++
-     */
-    UPROPERTY(Config, EditAnywhere, Category="CMake", Meta=(DisplayName="Path To CLang++ Executable"))
-    FFilePath CLangXXPath;
+    * Are the settings for the plugin complete and usable?
+    */
+    bool IsSetup();
 
     /**
-     * (optional) Path to CLang to be used in the CMakeList files as the compiler for C
+     * [optional] Path to a C compiler to be used in the CMakeList file.
      */
-    UPROPERTY(Config, EditAnywhere, Category="CMake", Meta=(DisplayName="Path To CLang Executable"))
-    FFilePath CLangPath;
+    UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="C Compiler (Optional)"))
+    FFilePath CCompiler;
+
+    /**
+     * Path to CLion executable, used when needing to launch CLion.
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CLion", Meta=(DisplayName="CLion Executable"))
+    FFilePath CLion;
+
+    /**
+     * [optional] Path to a C++ compiler to be used in the CMakeList file."
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="C++ Compiler (Optional)"))
+    FFilePath CXXCompiler;
+
+    /**
+     * Path to the Mono executable.
+     */
+    UPROPERTY(Config, EditAnywhere, Category="Unreal", Meta=(DisplayName="Mono Executable"))
+    FFilePath Mono;
 
 protected:
 #if WITH_EDITOR
@@ -43,18 +59,28 @@ protected:
 
 private:
 
-    FString PreviousCLionPath;
-    FString PreviousCLangPath;
-    FString PreviousCLangXXPath;
-    FString PreviousMonoPath;
-
-
-    bool CheckSetup();
-
+    /**
+     * Cached flag to tell if all settings are present needed to use the plugin.
+     */
     bool bSetupComplete = false;
 
-public:
-    bool bRequestRefresh;
+    /**
+     * Cached version of C Compiler to compare against when modifying.
+     */
+    FString PreviousCCompiler;
 
-    bool IsSetup();
+    /**
+     * Cached version of CLionPath to compare against when modifying.
+     */
+    FString PreviousCLion;
+
+    /**
+     * Cached version of C++ Compiler to compare against when modifying.
+     */
+    FString PreviousCXXComplier;
+
+    /**
+    * Cached version of Mono to compare against when modifying.
+    */
+    FString PreviousMono;
 };

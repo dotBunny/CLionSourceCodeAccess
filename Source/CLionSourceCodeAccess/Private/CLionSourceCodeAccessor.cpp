@@ -27,6 +27,7 @@ void FCLionSourceCodeAccessor::GenerateProjectFile()
         return;
     }
 
+
     if (!FPaths::IsProjectFilePathSet()) {
         FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT( "ProjectFileNotFound", "A project file was not found." ));
         return;
@@ -34,11 +35,18 @@ void FCLionSourceCodeAccessor::GenerateProjectFile()
 
     // Due to the currently broken production of CMakeFiles in UBT, we create a CodeLite project and convert it when
     // a viable CMakeList generation is available this will change.
-    this->GenerateFromCodeLiteProject();
+    if(!this->GenerateFromCodeLiteProject())
+    {
+        FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT( "ProjectGenerationFailed", "Unable to produce project files" ));
+        this->Settings->bRequireRefresh = true;
+    }
+    else
+    {
+        this->Settings->bRequireRefresh = false;
+    }
 }
 
-
-void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
+bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 {
     // Create our progress bar dialog.
     FScopedSlowTask ProjectGenerationTask(0, LOCTEXT("ProjectCreation", "Generating Project ..."));
@@ -72,8 +80,8 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
                                                *ProjectFilePath,
                                                *ProjectName);
     // Create File Process
-    UE_LOG(LogCLionAccessor, Log, TEXT("%s %s"), *this->Settings->MonoPath.FilePath, *Parameters);
-    FProcHandle ProcessHandle = FPlatformProcess::CreateProc(*this->Settings->MonoPath.FilePath, *Parameters, true, true, false, nullptr, 0, nullptr, nullptr);
+    UE_LOG(LogCLionAccessor, Log, TEXT("%s %s"), *this->Settings->Mono.FilePath, *Parameters);
+    FProcHandle ProcessHandle = FPlatformProcess::CreateProc(*this->Settings->Mono.FilePath, *Parameters, true, true, false, nullptr, 0, nullptr, nullptr);
 
 #endif
     CodeLiteTask.EnterProgressFrame();
@@ -86,7 +94,7 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     if(!FPaths::FileExists(IncludeDirectoriesPath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *IncludeDirectoriesPath);
-        return;
+        return false;
     }
 
     // Setup path for Definitions file
@@ -94,7 +102,7 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     if(!FPaths::FileExists(DefinitionsPath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *DefinitionsPath);
-        return;
+        return false;
     }
 
     // Setup path for our master project file
@@ -102,7 +110,7 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     if(!FPaths::FileExists(GeneratedProjectFilePath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *GeneratedProjectFilePath);
-        return;
+        return false;
     }
 
     // Setup path for where we will output the sub CMake files
@@ -129,7 +137,7 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     FString IncludeDirectoriesOutputPath = FPaths::Combine(*ProjectFileOutputFolder, TEXT("IncludeDirectories.cmake"));
     if (!FFileHelper::SaveStringToFile(IncludeDirectoriesContent, *IncludeDirectoriesOutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
         UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *IncludeDirectoriesOutputPath);
-        return;
+        return false;
     }
     OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *IncludeDirectoriesOutputPath));
 
@@ -152,7 +160,7 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     if(!FFileHelper::SaveStringToFile(DefinitionsProcessed, *DefinitionsOutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *DefinitionsOutputPath);
-        return;
+        return false;
     }
     OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *DefinitionsOutputPath));
 
@@ -214,7 +222,7 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         if(!FFileHelper::SaveStringToFile(OutputProjectTemplate, *ProjectOutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi))
         {
             UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *ProjectOutputPath);
-            return;
+            return false;
         }
 
         // Add Include Of Project Files
@@ -226,13 +234,13 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     FString OutputPath = FPaths::Combine(*ProjectPath, TEXT("CMakeLists.txt"));
 
     // Handle CLang++ / CLang (If Defined)
-    if ( !this->Settings->CLangXXPath.FilePath.IsEmpty() )
+    if ( !this->Settings->CXXCompiler.FilePath.IsEmpty() )
     {
-        OutputTemplate.Append(FString::Printf(TEXT("set(CMAKE_CXX_COMPILER \"%s\")\n"), *this->Settings->CLangXXPath.FilePath));
+        OutputTemplate.Append(FString::Printf(TEXT("set(CMAKE_CXX_COMPILER \"%s\")\n"), *this->Settings->CXXCompiler.FilePath));
     }
-    if ( !this->Settings->CLangPath.FilePath.IsEmpty() )
+    if ( !this->Settings->CCompiler.FilePath.IsEmpty() )
     {
-        OutputTemplate.Append(FString::Printf(TEXT("set(CMAKE_C_COMPILER \"%s\")\n"), *this->Settings->CLangPath.FilePath));
+        OutputTemplate.Append(FString::Printf(TEXT("set(CMAKE_C_COMPILER \"%s\")\n"), *this->Settings->CCompiler.FilePath));
     }
 
     // Add Executable Definition To Main Template
@@ -241,11 +249,11 @@ void FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     // Write out the file
     if (!FFileHelper::SaveStringToFile(OutputTemplate, *OutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
         UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *OutputPath);
-        return;
+        return false;
     }
+
+    return true;
 }
-
-
 
 FString FCLionSourceCodeAccessor::GetFilesFromCodeLiteXML(FXmlNode* CurrentNode) {
 
@@ -299,8 +307,14 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
         return false;
     }
 
+
+    if ( this->Settings->bRequireRefresh) {
+        this->GenerateProjectFile();
+    }
+
+
     const FString Path = FString::Printf(TEXT("\"%s --line %d --column %d %s\""), *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), LineNumber, ColumnNumber, *FullPath);
-    if(FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
+    if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
         UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenFileAtLine: Failed"));
         return false;
@@ -314,7 +328,12 @@ bool FCLionSourceCodeAccessor::OpenSolution()
 
     // TODO: Add check for CMakeProject file, if not there generate
 
-    if(FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
+    if ( this->Settings->bRequireRefresh) {
+        this->GenerateProjectFile();
+    }
+
+
+    if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
         UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSolution: Failed"));
         return false;
@@ -330,10 +349,14 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
         return false;
     }
 
+    if ( this->Settings->bRequireRefresh) {
+        this->GenerateProjectFile();
+    }
+
     for(const auto& SourcePath : AbsoluteSourcePaths)
     {
         const FString Path = FString::Printf(TEXT("\"%s\""), *SourcePath);
-        FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLionPath.FilePath, *Path, true, false, false, nullptr, 0, nullptr, nullptr);
+        FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, false, false, nullptr, 0, nullptr, nullptr);
 
         if(Proc.IsValid())
         {
@@ -355,6 +378,5 @@ void FCLionSourceCodeAccessor::Tick(const float DeltaTime)
 {
 
 }
-
 
 #undef LOCTEXT_NAMESPACE

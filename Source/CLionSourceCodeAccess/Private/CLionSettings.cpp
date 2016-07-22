@@ -13,7 +13,6 @@ UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
 
 bool UCLionSettings::CheckSettings()
 {
-
 #if PLATFORM_WINDOWS
 	if (this->CLion.FilePath.IsEmpty())
 	{
@@ -39,6 +38,20 @@ bool UCLionSettings::CheckSettings()
 		    this->Mono.FilePath = TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono");
 	    }
     }
+    if (this->CCompiler.FilePath.IsEmpty())
+    {
+        if(FPaths::FileExists(TEXT("/usr/bin/clang")))
+        {
+            this->CCompiler.FilePath = TEXT("/usr/bin/clang");
+        }
+    }
+    if (this->CXXCompiler.FilePath.IsEmpty())
+    {
+        if(FPaths::FileExists(TEXT("/usr/bin/clang++")))
+        {
+            this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
+        }
+    }
 #else
 	if (this->Mono.FilePath.IsEmpty() )
 	{
@@ -51,6 +64,20 @@ bool UCLionSettings::CheckSettings()
 			this->Mono.FilePath = TEXT("/opt/mono/bin/mono");
 		}
 	}
+    if (this->CCompiler.FilePath.IsEmpty())
+    {
+        if(FPaths::FileExists(TEXT("/usr/bin/clang")))
+        {
+            this->CCompiler.FilePath = TEXT("/usr/bin/clang");
+        }
+    }
+    if (this->CXXCompiler.FilePath.IsEmpty())
+    {
+        if(FPaths::FileExists(TEXT("/usr/bin/clang++")))
+        {
+            this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
+        }
+    }
 #endif
 
 	// Reset the setup complete before we check things
@@ -68,7 +95,16 @@ bool UCLionSettings::CheckSettings()
 	}
 #endif
 
+
+    // Update CMakeList path
+    this->CachedCMakeListPath= FPaths::Combine(*FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), TEXT("CMakeLists.txt"));
+
 	return this->bSetupComplete;
+}
+
+FString UCLionSettings::GetCMakeListPath()
+{
+    return this->CachedCMakeListPath;
 }
 
 bool UCLionSettings::IsSetup()
@@ -76,27 +112,20 @@ bool UCLionSettings::IsSetup()
 	return this->bSetupComplete;
 }
 
+
+
 #if WITH_EDITOR
 
 void UCLionSettings::PreEditChange(UProperty *PropertyAboutToChange)
 {
-//	UE_LOG(LogTemp, Error, TEXT("PRE PROCESS"));
-//	TMap<FString, FString> PropertyValues;
-//	PropertyAboutToChange->GetNativePropertyValues(PropertyValues);
-//
-//	for ( TMap<FString,FString>::TIterator It(PropertyValues); It; ++It )
-//	{
-//		FString key = *It.Key();
-//		FString value = *It.Value();
-//		UE_LOG(LogTemp, Error, TEXT("%s %s"), *key, *value);
-//	}
 
+    Super::PreEditChange(PropertyAboutToChange);
+
+    // Cache our previous values
 	this->PreviousCCompiler = this->CCompiler.FilePath;
 	this->PreviousMono = this->Mono.FilePath;
 	this->PreviousCLion = this->CLion.FilePath;
 	this->PreviousCXXCompiler = this->CXXCompiler.FilePath;
-
-	//this->PreviousData = *Cast<FString>(&PyropertyAboutToChange);
 }
 
 void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &PropertyChangedEvent)
@@ -104,15 +133,10 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 	const FName MemberPropertyName = (PropertyChangedEvent.Property != nullptr)
 	                                 ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-
-	UE_LOG(LogTemp, Error, TEXT("POST PROCESS"));
-
 	// CLion Executable Path Check
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CLion))
 	{
 		this->CLion.FilePath = FPaths::ConvertRelativePathToFull(this->CLion.FilePath);
-		this->CLion.FilePath = this->CLion.FilePath.Trim();
-		this->CLion.FilePath = this->CLion.FilePath.TrimTrailing();
 
 		FText FailReason;
 
@@ -148,8 +172,6 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, Mono))
 	{
 		this->Mono.FilePath = FPaths::ConvertRelativePathToFull(this->Mono.FilePath);
-		this->Mono.FilePath = this->Mono.FilePath.Trim();
-		this->Mono.FilePath = this->Mono.FilePath.TrimTrailing();
 
 		FText FailReason;
 
@@ -171,8 +193,6 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CCompiler))
 	{
 		this->CCompiler.FilePath = FPaths::ConvertRelativePathToFull(this->CCompiler.FilePath);
-		this->CCompiler.FilePath = this->CCompiler.FilePath.Trim();
-		this->CCompiler.FilePath = this->CCompiler.FilePath.TrimTrailing();
 
 		if (this->CCompiler.FilePath == this->PreviousCCompiler)
 		{
@@ -190,10 +210,11 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 	// Check C++ Compiler Path
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CXXCompiler)) {
 		this->CXXCompiler.FilePath = FPaths::ConvertRelativePathToFull(this->CXXCompiler.FilePath);
-		this->CXXCompiler.FilePath = this->CXXCompiler.FilePath.Trim();
-		this->CXXCompiler.FilePath = this->CXXCompiler.FilePath.TrimTrailing();
 
-		if (this->CXXCompiler.FilePath == this->PreviousCXXCompiler) return;
+		if (this->CXXCompiler.FilePath == this->PreviousCXXCompiler)
+        {
+            return;
+        }
 
 		if (!FPaths::FileExists(CXXCompiler.FilePath)) {
 			this->CXXCompiler.FilePath = this->PreviousCXXCompiler;

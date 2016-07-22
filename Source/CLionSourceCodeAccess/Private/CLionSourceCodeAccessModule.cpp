@@ -111,3 +111,5 @@ void FCLionSourceCodeAccessModule::UnregisterSettings()
         SettingsModule->UnregisterSettings("Project", "CLionSettings", "General");
     }
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -12,20 +12,39 @@ class FCLionSourceCodeAccessor : public ISourceCodeAccessor
 {
 public:
 	/** ISourceCodeAccessor implementation */
-	virtual void RefreshAvailability() override { }
+	virtual void RefreshAvailability() override
+	{
+	}
+
 	virtual bool CanAccessSourceCode() const override;
+
 	virtual FName GetFName() const override;
+
 	virtual FText GetNameText() const override;
+
 	virtual FText GetDescriptionText() const override;
+
 	virtual bool OpenSolution() override;
+
 	virtual bool OpenFileAtLine(const FString& FullPath, int32 LineNumber, int32 ColumnNumber = 0) override;
+
 	virtual bool OpenSourceFiles(const TArray<FString>& AbsoluteSourcePaths) override;
-	virtual bool AddSourceFiles(const TArray<FString>& AbsoluteSourcePaths, const TArray<FString>& AvailableModules) override;
+
+	virtual bool
+	AddSourceFiles(const TArray<FString>& AbsoluteSourcePaths, const TArray<FString>& AvailableModules) override;
+
 	virtual bool SaveAllOpenDocuments() const override;
-	virtual void Tick(const float DeltaTime) override;
 
 	/**
- 	* Create the CMakeLists.txt File, called from File -> Refresh CMakeLists
+	 * Frame Tick (Not Used)
+	 * @param DeltaTime of frame
+	 */
+	virtual void Tick(const float DeltaTime) override
+	{
+	}
+
+	/**
+ 	* Create the CMakeLists.txt file and all the sub *.cmake addins.
  	*/
 	void GenerateProjectFile();
 
@@ -42,9 +61,9 @@ public:
 private:
 
 	/**
-     * A local reference to the Settings object
+     * A local reference to the Settings object.
      */
-    UCLionSettings* Settings;
+	UCLionSettings* Settings;
 
 	/**
 	 * Instruct UnrealBuildTool to generate a CodeLite project, then convert it to CMakeList
@@ -53,9 +72,11 @@ private:
 	bool GenerateFromCodeLiteProject();
 
 	/**
-	 * Recursive look at a CodeLite project file for files.
-	 * @param The root node to start looking from.
-	 * @return A usable CMake string of all files.
+	 * Recursively search XmlNode for children namd Tag, and grab their Attribute.
+	 * @param The root XmlNode to search from.
+	 * @param The tag of the elements to uses.
+	 * @param The attribute that we want to collect.
+	 * @return A CMakeList compatible string set of the attributes.
 	 */
-    FString GetFilesFromCodeLiteXML(FXmlNode* CurrentNode);
+	static FString GetAttributeByTag(FXmlNode* CurrentNode, const FString& Tag, const FString& Attribute);
 };

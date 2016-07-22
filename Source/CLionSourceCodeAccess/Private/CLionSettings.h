@@ -22,6 +22,12 @@ public:
      */
     bool CheckSettings();
 
+	/**
+ 	* Get the cached CMakeList path.
+ 	* @return CMakeList Path
+ 	*/
+	FString GetCMakeListPath();
+
     /**
     * Are the settings for the plugin complete and usable?
     */
@@ -65,6 +71,11 @@ private:
     bool bSetupComplete = false;
 
 	/**
+ 	* A cached reference of the path to the CMakeList.txt file
+ 	*/
+	FString CachedCMakeListPath;
+
+	/**
      * Cached version of C Compiler location.
      */
 	FString PreviousCCompiler;
@@ -83,9 +94,4 @@ private:
      * Cached version of Mono location.
      */
     FString PreviousMono;
-
-	/**
-	 * Cached string data used while editing as a backup.
-	 */
-	FString PreviousData;
 };

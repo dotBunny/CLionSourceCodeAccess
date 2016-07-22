@@ -211,7 +211,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         FXmlNode * CurrentNode = WorkingGeneratedProjectFile->GetRootNode();
 
         // Call our recursive function to delve deep and get the data we need
-        FString WorkingProjectFiles = GetFilesFromCodeLiteXML(CurrentNode);
+        FString WorkingProjectFiles = FCLionSourceCodeAccessor::GetAttributeByTag(CurrentNode, TEXT("File"), TEXT("Name"));
 
         // Add file set to the project cmake file (this is so we split things up, so CLion does't have
         // any issues with the file size of one individual file.
@@ -229,10 +229,6 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *ProjectOutputPath));
     }
 
-
-    // Time to output this, determine the output path
-    FString OutputPath = FPaths::Combine(*ProjectPath, TEXT("CMakeLists.txt"));
-
     // Handle CLang++ / CLang (If Defined)
     if ( !this->Settings->CXXCompiler.FilePath.IsEmpty() )
     {
@@ -247,30 +243,29 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     OutputTemplate.Append(FString::Printf(TEXT("add_executable(%sEditor ${%sEditor_FILES})\n"), *ProjectName, *ProjectName));
 
     // Write out the file
-    if (!FFileHelper::SaveStringToFile(OutputTemplate, *OutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
-        UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *OutputPath);
+    if (!FFileHelper::SaveStringToFile(OutputTemplate, *this->Settings->GetCMakeListPath(),  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
+        UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *this->Settings->GetCMakeListPath());
         return false;
     }
 
     return true;
 }
 
-FString FCLionSourceCodeAccessor::GetFilesFromCodeLiteXML(FXmlNode* CurrentNode) {
-
+FString FCLionSourceCodeAccessor::GetAttributeByTag(FXmlNode* CurrentNode, const FString& Tag, const FString& Attribute)
+{
     FString ReturnContent = "";
 
-    if ( CurrentNode->GetTag() == "File" ) {
-        ReturnContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *CurrentNode->GetAttribute("Name")));
+    if ( CurrentNode->GetTag() == Tag ) {
+        ReturnContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *CurrentNode->GetAttribute(Attribute)));
     }
 
     const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
     for (FXmlNode* Node : childrenNodes)
     {
-        ReturnContent += GetFilesFromCodeLiteXML(Node);
+        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTag(Node, Tag, Attribute);
     }
 
     return ReturnContent;
-
 }
 
 FText FCLionSourceCodeAccessor::GetDescriptionText() const
@@ -283,22 +278,10 @@ FName FCLionSourceCodeAccessor::GetFName() const
 	return FName("CLionSourceCodeAccessor");
 }
 
+
 FText FCLionSourceCodeAccessor::GetNameText() const
 {
 	return LOCTEXT("CLionDisplayName", "CLion");
-}
-
-void FCLionSourceCodeAccessor::Shutdown()
-{
-    this->Settings = nullptr;
-}
-
-void FCLionSourceCodeAccessor::Startup()
-{
-    // Get reference to our settings object
-    this->Settings = GetMutableDefault<UCLionSettings>();
-
-    this->Settings->CheckSettings();
 }
 
 bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 LineNumber, int32 ColumnNumber)
@@ -309,8 +292,7 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
         return false;
     }
 
-
-    if ( this->Settings->bRequireRefresh) {
+    if ( this->Settings->bRequireRefresh || !FPaths::FileExists(*this->Settings->GetCMakeListPath())) {
         this->GenerateProjectFile();
     }
 
@@ -334,6 +316,9 @@ bool FCLionSourceCodeAccessor::OpenSolution()
         this->GenerateProjectFile();
     }
 
+    if ( this->Settings->bRequireRefresh || !FPaths::FileExists(*this->Settings->GetCMakeListPath())) {
+        this->GenerateProjectFile();
+    }
 
     if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
@@ -351,7 +336,7 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
         return false;
     }
 
-    if ( this->Settings->bRequireRefresh) {
+    if ( this->Settings->bRequireRefresh || !FPaths::FileExists(*this->Settings->GetCMakeListPath())) {
         this->GenerateProjectFile();
     }
 
@@ -372,13 +357,20 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
 
 bool FCLionSourceCodeAccessor::SaveAllOpenDocuments() const
 {
-    // TODO: Implement saving remotely?
-    return true;
+	// TODO: Implement saving remotely?
+	return true;
+}
+void FCLionSourceCodeAccessor::Shutdown()
+{
+	this->Settings = nullptr;
 }
 
-void FCLionSourceCodeAccessor::Tick(const float DeltaTime)
+void FCLionSourceCodeAccessor::Startup()
 {
+	// Get reference to our settings object
+	this->Settings = GetMutableDefault<UCLionSettings>();
 
+	this->Settings->CheckSettings();
 }
 
 #undef LOCTEXT_NAMESPACE

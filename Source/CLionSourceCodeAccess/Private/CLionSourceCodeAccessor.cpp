@@ -298,9 +298,12 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
 
 
     const FString Path = FString::Printf(TEXT("\"%s --line %d --column %d %s\""), *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), LineNumber, ColumnNumber, *FullPath);
-    if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
+
+    FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr);
+    if(!Proc.IsValid())
     {
-        UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenFileAtLine: Failed"));
+        UE_LOG(LogCLionAccessor, Warning, TEXT("Opening file (%s) at a specific line failed."), *Path);
+        FPlatformProcess::CloseProc(Proc);
         return false;
     }
 
@@ -322,7 +325,7 @@ bool FCLionSourceCodeAccessor::OpenSolution()
 
     if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
-        UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSolution: Failed"));
+        UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the solution failed."));
         return false;
     }
     return true;
@@ -345,9 +348,9 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
         const FString Path = FString::Printf(TEXT("\"%s\""), *SourcePath);
         FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, false, false, nullptr, 0, nullptr, nullptr);
 
-        if(Proc.IsValid())
+        if(!Proc.IsValid())
         {
-            UE_LOG(LogCLionAccessor, Warning, TEXT("FCLionSourceCodeAccessor::OpenSourceFiles: Failed"));
+            UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the source file (%s) failed."), *Path);
             FPlatformProcess::CloseProc(Proc);
             return true;
         }

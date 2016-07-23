@@ -49,8 +49,9 @@ void FCLionSourceCodeAccessor::GenerateProjectFile()
 bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 {
     // Create our progress bar dialog.
-    FScopedSlowTask ProjectGenerationTask(0, LOCTEXT("ProjectCreation", "Generating Project ..."));
+    FScopedSlowTask ProjectGenerationTask(21, LOCTEXT("StartCMakeListGeneration", "Starting CMakeList Generation"));
     ProjectGenerationTask.MakeDialog();
+    ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("StartCMakeListGeneration", "Starting CMakeList Generation"));
 
     // Cache our path information
     const FString UnrealBuildToolPath = *FPaths::ConvertRelativePathToFull(*FPaths::Combine(*FPaths::EngineDir(), TEXT("Binaries"), TEXT("DotNET"), TEXT("UnrealBuildTool.exe")));
@@ -61,39 +62,42 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     // Start our master CMakeList file
     FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
 
-    // Pop a progress window
-    FScopedSlowTask CodeLiteTask(1, LOCTEXT("ProjectCreation", "Generating CodeLite Project ..."));
-    CodeLiteTask.MakeDialog();
-    CodeLiteTask.EnterProgressFrame();
+    // Increase our progress
+    ProjectGenerationTask.EnterProgressFrame(10, LOCTEXT("GeneratingCodLiteProject", "Generating CodeLite Project"));
 
 #if PLATFORM_WINDOWS
-    const FString Parameters = FString::Printf(TEXT("\"%s -Game %s -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs\""),
+	const FString BuildProjectCommand = *UnrealBuildToolPath;
+    const FString BuildProjectParameters = FString::Printf(TEXT("\"%s -Game %s -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs\""),
                                                *ProjectFilePath,
                                                *ProjectName);
-
-    UE_LOG(LogCLionAccessor, Log, TEXT("%s %s"), *UnrealBuildToolPath, *Parameters);
-    FProcHandle ProcessHandle = FPlatformProcess::CreateProc(*UnrealBuildToolPath, *Parameters, true, true, false, nullptr, 0, nullptr, nullptr);
 #else
-
-    const FString Parameters = FString::Printf(TEXT("%s %s -Game %s -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
+	const FString BuildProjectCommand = *this->Settings->Mono.FilePath;
+    const FString BuildProjectParameters = FString::Printf(TEXT("%s %s -Game %s -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
                                                *UnrealBuildToolPath,
                                                *ProjectFilePath,
                                                *ProjectName);
-    // Create File Process
-    UE_LOG(LogCLionAccessor, Log, TEXT("%s %s"), *this->Settings->Mono.FilePath, *Parameters);
-    FProcHandle ProcessHandle = FPlatformProcess::CreateProc(*this->Settings->Mono.FilePath, *Parameters, true, true, false, nullptr, 0, nullptr, nullptr);
-
 #endif
-    CodeLiteTask.EnterProgressFrame();
+
+	FProcHandle BuildProjectProcess = FPlatformProcess::CreateProc(*BuildProjectCommand, *BuildProjectParameters, true, true, false, nullptr, 0, nullptr, nullptr);
+	if (!BuildProjectProcess.IsValid())
+	{
+		UE_LOG(LogCLionAccessor, Error, TEXT("Failure to run UBT [%s %s]."), *BuildProjectCommand, *BuildProjectParameters);
+		FPlatformProcess::CloseProc(BuildProjectProcess);
+		return false;
+	}
 
     // Wait for the process to finish before moving on
-    FPlatformProcess::WaitForProc(ProcessHandle);
+    FPlatformProcess::WaitForProc(BuildProjectProcess);
+
+    // Enter next phase of generation
+    ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CheckingFiles", "Checking Files"));
 
     // Setup path for Includes files
     const FString IncludeDirectoriesPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeCompletionFolders.txt"), *ProjectName));
     if(!FPaths::FileExists(IncludeDirectoriesPath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *IncludeDirectoriesPath);
+        ProjectGenerationTask.EnterProgressFrame(9);
         return false;
     }
 
@@ -102,6 +106,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     if(!FPaths::FileExists(DefinitionsPath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *DefinitionsPath);
+        ProjectGenerationTask.EnterProgressFrame(9);
         return false;
     }
 
@@ -110,6 +115,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     if(!FPaths::FileExists(GeneratedProjectFilePath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *GeneratedProjectFilePath);
+        ProjectGenerationTask.EnterProgressFrame(9);
         return false;
     }
 
@@ -119,6 +125,9 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     {
         FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*ProjectFileOutputFolder);
     }
+
+    ProjectGenerationTask.EnterProgressFrame(3, LOCTEXT("CreatingHelperCMakeFiles", "Creating Helper CMake Files"));
+
 
     // Gather our information on include directories
     FString IncludeDirectoriesData;
@@ -140,7 +149,6 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         return false;
     }
     OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *IncludeDirectoriesOutputPath));
-
 
     // Gather our information on definitions
     FString DefinitionsData;
@@ -165,6 +173,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *DefinitionsOutputPath));
 
 
+    ProjectGenerationTask.EnterProgressFrame(5, LOCTEXT("CreatingProjectCMakeFiles", "Creating Project CMake Files"));
+
     // Handle finding the project file (we'll use this to determine the subprojects)
     FXmlFile* RootGeneratedProjectFile = new FXmlFile();
     RootGeneratedProjectFile->LoadFile(*GeneratedProjectFilePath);
@@ -181,18 +191,12 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         }
     }
 
-    // Pop a progress window
-    FScopedSlowTask ProjectTasks(RootProjectNodes.Num(), LOCTEXT("ProjectCreation", "Evaluating Project Files ..."));
-    ProjectTasks.MakeDialog();
-    ProjectTasks.EnterProgressFrame();
-
     // Iterate and create projects
     FXmlFile* WorkingGeneratedProjectFile = new FXmlFile();
     FXmlNode* WorkingRootProjectNode;
 
     for (FXmlNode* Node : ProjectNodes) {
         // Increment Progress Bar
-        ProjectTasks.EnterProgressFrame();
         FString OutputProjectTemplate = "";
         FString SubProjectName = Node->GetAttribute("Name");
         FString SubProjectFile = FPaths::Combine(*ProjectPath, *Node->GetAttribute("Path"));
@@ -228,6 +232,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         // Add Include Of Project Files
         OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *ProjectOutputPath));
     }
+
+    ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CreatingCMakeListsFile", "Creating CMakeLists.txt File"));
 
     // Handle CLang++ / CLang (If Defined)
     if ( !this->Settings->CXXCompiler.FilePath.IsEmpty() )

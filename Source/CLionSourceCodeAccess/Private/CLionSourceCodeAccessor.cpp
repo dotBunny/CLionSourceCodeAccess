@@ -191,15 +191,23 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         }
     }
 
+	//WorkspaceConfiguration (DebugGame/Development/Shipping)
+
     // Iterate and create projects
     FXmlFile* WorkingGeneratedProjectFile = new FXmlFile();
     FXmlNode* WorkingRootProjectNode;
+
+	FScopedSlowTask SubProjectGenerationTask(ProjectNodes.Num(), LOCTEXT("StartSubProjects", "Generating Sub Project File"));
+	SubProjectGenerationTask.MakeDialog();
+
 
     for (FXmlNode* Node : ProjectNodes) {
         // Increment Progress Bar
         FString OutputProjectTemplate = "";
         FString SubProjectName = Node->GetAttribute("Name");
         FString SubProjectFile = FPaths::Combine(*ProjectPath, *Node->GetAttribute("Path"));
+
+	    SubProjectGenerationTask.EnterProgressFrame(1);
 
         // Check the project file does exist
         if (!FPaths::FileExists(SubProjectFile)) {

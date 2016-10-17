@@ -61,6 +61,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
     // Start our master CMakeList file
     FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
+    OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n\n"));
 
     // Increase our progress
     ProjectGenerationTask.EnterProgressFrame(10, LOCTEXT("GeneratingCodLiteProject", "Generating CodeLite Project"));
@@ -223,7 +224,9 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         FXmlNode * CurrentNode = WorkingGeneratedProjectFile->GetRootNode();
 
         // Call our recursive function to delve deep and get the data we need
-        FString WorkingProjectFiles = FCLionSourceCodeAccessor::GetAttributeByTag(CurrentNode, TEXT("File"), TEXT("Name"));
+        FString WorkingProjectFiles = FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(CurrentNode ,
+                                                                                                  TEXT("File") ,
+                                                                                                  TEXT("Name"));
 
         // Add file set to the project cmake file (this is so we split things up, so CLion does't have
         // any issues with the file size of one individual file.
@@ -239,6 +242,10 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
         // Add Include Of Project Files
         OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *ProjectOutputPath));
+
+        //Get working directory and build command
+        FString CustomTargets = FCLionSourceCodeAccessor::GetBuildCommands(CurrentNode, SubProjectName);
+        OutputTemplate.Append(CustomTargets);
     }
 
     ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CreatingCMakeListsFile", "Creating CMakeLists.txt File"));
@@ -254,7 +261,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Add Executable Definition To Main Template
-    OutputTemplate.Append(FString::Printf(TEXT("add_executable(%sEditor ${%sEditor_FILES})\n"), *ProjectName, *ProjectName));
+    OutputTemplate.Append(FString::Printf(TEXT("\nadd_executable(%sEditorFake ${%sEditor_FILES})\n"), *ProjectName, *ProjectName));
 
     // Write out the file
     if (!FFileHelper::SaveStringToFile(OutputTemplate, *this->Settings->GetCMakeListPath(),  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
@@ -265,7 +272,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     return true;
 }
 
-FString FCLionSourceCodeAccessor::GetAttributeByTag(FXmlNode* CurrentNode, const FString& Tag, const FString& Attribute)
+FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode , const FString &Tag ,
+                                                                    const FString &Attribute)
 {
     FString ReturnContent = "";
 
@@ -276,7 +284,96 @@ FString FCLionSourceCodeAccessor::GetAttributeByTag(FXmlNode* CurrentNode, const
     const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
     for (FXmlNode* Node : childrenNodes)
     {
-        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTag(Node, Tag, Attribute);
+        //Don't get files from "Config", "Plugins", "Shaders"
+        if (Node->GetTag() == TEXT("VirtualDirectory")) {
+            const FString & name = Node->GetAttribute(TEXT("Name"));
+
+            if ((name == TEXT("Config")) || (name == TEXT("Plugins")) || (name == TEXT("Shaders"))) {
+                continue;
+            }
+        }
+
+        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(Node , Tag , Attribute);
+    }
+
+    return ReturnContent;
+}
+
+FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName)
+{
+    FString ReturnContent = "";
+    FString MonoPath = "";
+
+    if (CurrentNode->GetTag() != TEXT("Settings")) {
+        const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
+        for (FXmlNode* Node : childrenNodes) {
+            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName);
+        }
+    } else {
+        const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
+        for (FXmlNode* Node : childrenNodes) {
+            if (Node->GetTag() == TEXT("Configuration")) {
+                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName, MonoPath);
+            }
+        }
+    }
+
+    return ReturnContent;
+}
+
+FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath) {
+    FString ReturnContent = "";
+
+    const FString & ConfigurationName = CurrentNode->GetAttribute(TEXT("Name"));
+
+    FString WorkingDirectory = "";
+    FString BuildCommand = "";
+    FString CleanCommand = "";
+
+    const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
+    for (FXmlNode* Node : childrenNodes) {
+
+        if ((Node->GetTag() == TEXT("CustomBuild")) && (Node->GetAttribute(TEXT("Enabled")) == TEXT("yes"))) {
+
+            const TArray<FXmlNode*> subchildrenNodes = Node->GetChildrenNodes();
+
+            for (FXmlNode* subNode : subchildrenNodes) {
+                if (subNode->GetTag() == TEXT("WorkingDirectory")) {
+                    WorkingDirectory = subNode->GetContent();
+                }
+
+                if (subNode->GetTag() == TEXT("BuildCommand")) {
+                    BuildCommand = subNode->GetContent();
+                }
+
+                if (subNode->GetTag() == TEXT("CleanCommand")) {
+                    CleanCommand = subNode->GetContent();
+                }
+            }
+
+            ReturnContent +=
+                    FString::Printf(TEXT("\n# Custom target for %s project, %s configuration\n"), *SubprojectName, *ConfigurationName);
+            if (MonoPath != WorkingDirectory) { // Do this to avoid duplication in CMakeLists.txt
+                ReturnContent +=
+                        FString::Printf(TEXT("set(MONO_ROOT_PATH \"%s\")\n") , *WorkingDirectory);
+                MonoPath = WorkingDirectory;
+
+                ReturnContent +=
+                        FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n\n"));
+            }
+
+            if (ConfigurationName == TEXT("Development")) {
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s ${BUILD} && %s -game)\n") , *SubprojectName , *BuildCommand);
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *CleanCommand);
+            } else {
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Mac-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Mac-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
+            }
+        }
     }
 
     return ReturnContent;

@@ -78,5 +78,9 @@ private:
 	 * @param The attribute that we want to collect.
 	 * @return A CMakeList compatible string set of the attributes.
 	 */
-	static FString GetAttributeByTag(FXmlNode* CurrentNode, const FString& Tag, const FString& Attribute);
+	static FString GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode , const FString &Tag ,
+													 const FString &Attribute);
+
+	static FString GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName);
+	static FString HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath);
 };

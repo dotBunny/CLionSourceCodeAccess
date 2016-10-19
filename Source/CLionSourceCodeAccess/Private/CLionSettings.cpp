@@ -29,7 +29,10 @@ bool UCLionSettings::CheckSettings()
 #elif PLATFORM_MAC
     if ( this->CLion.FilePath.IsEmpty())
     {
-        this->CLion.FilePath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
+	    if (FPaths::FileExists(TEXT("/Applications/CLion.app/Contents/MacOS/clion")))
+	    {
+		    this->CLion.FilePath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
+	    }
     }
     if (this->Mono.FilePath.IsEmpty() )
     {
@@ -53,6 +56,13 @@ bool UCLionSettings::CheckSettings()
         }
     }
 #else
+	if ( this->CLion.FilePath.IsEmpty())
+    {
+	    if(FPaths::FileExists(TEXT("/opt/clion/bin/clion.sh")))
+        {
+            this->CLion.FilePath = TEXT("/opt/clion/bin/clion.sh");
+        }
+    }
 	if (this->Mono.FilePath.IsEmpty() )
 	{
 		if (FPaths::FileExists(TEXT("/usr/bin/mono")))
@@ -78,6 +88,7 @@ bool UCLionSettings::CheckSettings()
             this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
         }
     }
+
 #endif
 
 	// Reset the setup complete before we check things

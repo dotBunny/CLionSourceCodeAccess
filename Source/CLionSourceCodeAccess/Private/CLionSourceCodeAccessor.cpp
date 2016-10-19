@@ -225,8 +225,11 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
         // Call our recursive function to delve deep and get the data we need
         FString WorkingProjectFiles = FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(CurrentNode ,
-                                                                                                  TEXT("File") ,
-                                                                                                  TEXT("Name"));
+                                                                                                  TEXT("File"),
+                                                                                                  TEXT("Name"),
+                                                                                                  this->Settings->bIncludeConfigs,
+                                                                                                  this->Settings->bIncludePlugins,
+                                                                                                  this->Settings->bIncludeShaders);
 
         // Add file set to the project cmake file (this is so we split things up, so CLion does't have
         // any issues with the file size of one individual file.
@@ -272,8 +275,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     return true;
 }
 
-FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode , const FString &Tag ,
-                                                                    const FString &Attribute)
+FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode, const FString &Tag, const FString &Attribute, const bool &IncludeConfigs, const bool &IncludePlugins, const bool &IncludeShaders)
 {
     FString ReturnContent = "";
 
@@ -288,12 +290,21 @@ FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *Cu
         if (Node->GetTag() == TEXT("VirtualDirectory")) {
             const FString & name = Node->GetAttribute(TEXT("Name"));
 
-            if ((name == TEXT("Config")) || (name == TEXT("Plugins")) || (name == TEXT("Shaders"))) {
-                continue;
-            }
+			if (!IncludeConfigs && name == TEXT("Config"))
+			{
+				continue;
+			}
+	        if (!IncludePlugins && name == TEXT("Plugins"))
+	        {
+		        continue;
+	        }
+	        if (!IncludeShaders && name == TEXT("Shaders"))
+	        {
+		        continue;
+	        }
         }
 
-        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(Node , Tag , Attribute);
+        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(Node, Tag, Attribute, IncludeConfigs, IncludePlugins, IncludeShaders);
     }
 
     return ReturnContent;

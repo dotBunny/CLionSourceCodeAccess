@@ -51,6 +51,26 @@ public:
     UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="C++ Compiler (Optional)"))
     FFilePath CXXCompiler;
 
+
+	/**
+	 * Include Config In Makefile
+	 */
+	UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="Include Configs"))
+	bool bIncludeConfigs = false;
+
+	/**
+	 * Include Plugins In Makefile
+	 */
+	UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="Include Plugins"))
+	bool bIncludePlugins = false;
+
+
+	/**
+	 * Include Shaders In Makefile
+	 */
+	UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="Include Shaders"))
+	bool bIncludeShaders = false;
+
     /**
      * Path to the Mono executable.
      */

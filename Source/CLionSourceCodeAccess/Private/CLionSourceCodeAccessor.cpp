@@ -448,7 +448,8 @@ bool FCLionSourceCodeAccessor::OpenSolution()
     const FString Path = FString::Printf(TEXT("\"%s\""), *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()));
     if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
-        UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the solution failed."));
+        // This seems to always fail no matter what we do - could be the process type? Get rid of the warning for now
+        //UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the solution failed."));
         return false;
     }
     return true;

@@ -445,7 +445,8 @@ bool FCLionSourceCodeAccessor::OpenSolution()
         this->GenerateProjectFile();
     }
 
-    if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
+    const FString Path = FString::Printf(TEXT("\"%s\""), *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()));
+    if(FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr, 0, nullptr, nullptr).IsValid())
     {
         UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the solution failed."));
         return false;

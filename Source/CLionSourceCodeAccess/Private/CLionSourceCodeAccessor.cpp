@@ -68,12 +68,12 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 #if PLATFORM_WINDOWS
 	const FString BuildProjectCommand = *UnrealBuildToolPath;
-    const FString BuildProjectParameters = FString::Printf(TEXT("\"%s -Game %s -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs\""),
+    const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
                                                *ProjectFilePath,
                                                *ProjectName);
 #else
 	const FString BuildProjectCommand = *this->Settings->Mono.FilePath;
-    const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" \"%s\" -Game %s -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
+    const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" \"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
                                                *UnrealBuildToolPath,
                                                *ProjectFilePath,
                                                *ProjectName);

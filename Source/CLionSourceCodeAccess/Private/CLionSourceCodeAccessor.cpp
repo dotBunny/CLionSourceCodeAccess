@@ -196,7 +196,6 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
     // Iterate and create projects
     FXmlFile* WorkingGeneratedProjectFile = new FXmlFile();
-    FXmlNode* WorkingRootProjectNode;
 
 	FScopedSlowTask SubProjectGenerationTask(ProjectNodes.Num(), LOCTEXT("StartSubProjects", "Generating Sub Project File"));
 	SubProjectGenerationTask.MakeDialog();

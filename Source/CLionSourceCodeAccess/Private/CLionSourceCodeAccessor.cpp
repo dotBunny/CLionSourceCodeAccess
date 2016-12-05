@@ -60,7 +60,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     const FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath, true);
 
     // Start our master CMakeList file
-    FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
+    FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.8.4)\nproject (UE4)\n");
     OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n\n"));
 
     // Increase our progress

@@ -60,7 +60,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     const FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath, true);
 
     // Start our master CMakeList file
-    FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.8.4)\nproject (UE4)\n");
+    FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
     OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n\n"));
 
     // Increase our progress
@@ -142,7 +142,6 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
        IncludeDirectoriesContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *Line));
     }
     IncludeDirectoriesContent.Append(TEXT(")\ninclude_directories(${INCLUDE_DIRECTORIES})\n"));
-	IncludeDirectoriesContent = IncludeDirectoriesContent.Replace(TEXT("\\"), TEXT("/"));
 
     // Output our Include Directories content and add an entry to the CMakeList
     FString IncludeDirectoriesOutputPath = FPaths::Combine(*ProjectFileOutputFolder, TEXT("IncludeDirectories.cmake"));
@@ -231,7 +230,6 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
                                                                                                   this->Settings->bIncludePlugins,
                                                                                                   this->Settings->bIncludeShaders);
 
-		WorkingProjectFiles = WorkingProjectFiles.Replace(TEXT("\\"), TEXT("/"));
         // Add file set to the project cmake file (this is so we split things up, so CLion does't have
         // any issues with the file size of one individual file.
         OutputProjectTemplate.Append(FString::Printf(TEXT("set(%s_FILES \n%s)\n"), *SubProjectName, *WorkingProjectFiles));
@@ -352,7 +350,6 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
             for (FXmlNode* subNode : subchildrenNodes) {
                 if (subNode->GetTag() == TEXT("WorkingDirectory")) {
                     WorkingDirectory = subNode->GetContent();
-					WorkingDirectory = WorkingDirectory.Replace(TEXT("\\"), TEXT("/"));
                 }
 
                 if (subNode->GetTag() == TEXT("BuildCommand")) {
@@ -389,7 +386,6 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
         }
     }
 
-	ReturnContent = ReturnContent.Replace(TEXT("\\"), TEXT("/"));
     return ReturnContent;
 }
 

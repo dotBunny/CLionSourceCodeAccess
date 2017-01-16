@@ -54,10 +54,14 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("StartCMakeListGeneration", "Starting CMakeList Generation"));
 
     // Cache our path information
-    const FString UnrealBuildToolPath = *FPaths::ConvertRelativePathToFull(*FPaths::Combine(*FPaths::EngineDir(), TEXT("Binaries"), TEXT("DotNET"), TEXT("UnrealBuildTool.exe")));
-    const FString ProjectFilePath = *FPaths::ConvertRelativePathToFull(*FPaths::GetProjectFilePath());
-    const FString ProjectPath = *FPaths::ConvertRelativePathToFull(*FPaths::GameDir());
-    const FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath, true);
+    FString UnrealBuildToolPath = *FPaths::ConvertRelativePathToFull(*FPaths::Combine(*FPaths::EngineDir(), TEXT("Binaries"), TEXT("DotNET"), TEXT("UnrealBuildTool.exe")));
+    FPaths::NormalizeFilename(UnrealBuildToolPath);
+    FString ProjectFilePath = *FPaths::ConvertRelativePathToFull(*FPaths::GetProjectFilePath());
+    FPaths::NormalizeFilename(ProjectFilePath);
+    FString ProjectPath = *FPaths::ConvertRelativePathToFull(*FPaths::GameDir());
+    FPaths::NormalizeFilename(ProjectPath);
+    FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath, true);
+    FPaths::NormalizeFilename(ProjectName);
 
     // Start our master CMakeList file
     FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
@@ -94,7 +98,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CheckingFiles", "Checking Files"));
 
     // Setup path for Includes files
-    const FString IncludeDirectoriesPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeCompletionFolders.txt"), *ProjectName));
+    FString IncludeDirectoriesPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeCompletionFolders.txt"), *ProjectName));
+    FPaths::NormalizeFilename(IncludeDirectoriesPath);
     if(!FPaths::FileExists(IncludeDirectoriesPath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *IncludeDirectoriesPath);
@@ -103,7 +108,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Setup path for Definitions file
-    const FString DefinitionsPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeLitePreProcessor.txt"), *ProjectName));
+    FString DefinitionsPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeLitePreProcessor.txt"), *ProjectName));
+    FPaths::NormalizeFilename(DefinitionsPath);
     if(!FPaths::FileExists(DefinitionsPath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *DefinitionsPath);
@@ -112,7 +118,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Setup path for our master project file
-    const FString GeneratedProjectFilePath =  FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%s.workspace"), *ProjectName));
+    FString GeneratedProjectFilePath =  FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%s.workspace"), *ProjectName));
+    FPaths::NormalizeFilename(GeneratedProjectFilePath);
     if(!FPaths::FileExists(GeneratedProjectFilePath))
     {
         UE_LOG(LogCLionAccessor, Error, TEXT("Unable to find %s"), *GeneratedProjectFilePath);
@@ -121,7 +128,8 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Setup path for where we will output the sub CMake files
-    const FString ProjectFileOutputFolder = FPaths::Combine(*ProjectPath, TEXT("Intermediate"), TEXT("ProjectFiles"));
+    FString ProjectFileOutputFolder = FPaths::Combine(*ProjectPath, TEXT("Intermediate"), TEXT("ProjectFiles"));
+    FPaths::NormalizeFilename(ProjectFileOutputFolder);
     if(!FPaths::DirectoryExists(ProjectFileOutputFolder))
     {
         FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*ProjectFileOutputFolder);
@@ -139,12 +147,14 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     FString IncludeDirectoriesContent = TEXT("set(INCLUDE_DIRECTORIES \n");
     for (FString Line : IncludeDirectoriesLines)
     {
-       IncludeDirectoriesContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *Line));
+        FPaths::NormalizeFilename(Line);
+        IncludeDirectoriesContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *Line));
     }
     IncludeDirectoriesContent.Append(TEXT(")\ninclude_directories(${INCLUDE_DIRECTORIES})\n"));
 
     // Output our Include Directories content and add an entry to the CMakeList
     FString IncludeDirectoriesOutputPath = FPaths::Combine(*ProjectFileOutputFolder, TEXT("IncludeDirectories.cmake"));
+    FPaths::NormalizeFilename(IncludeDirectoriesOutputPath);
     if (!FFileHelper::SaveStringToFile(IncludeDirectoriesContent, *IncludeDirectoriesOutputPath,  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
         UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *IncludeDirectoriesOutputPath);
         return false;
@@ -229,7 +239,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
                                                                                                   this->Settings->bIncludeConfigs,
                                                                                                   this->Settings->bIncludePlugins,
                                                                                                   this->Settings->bIncludeShaders);
-
+        FPaths::NormalizeFilename(WorkingProjectFiles);
         // Add file set to the project cmake file (this is so we split things up, so CLion does't have
         // any issues with the file size of one individual file.
         OutputProjectTemplate.Append(FString::Printf(TEXT("set(%s_FILES \n%s)\n"), *SubProjectName, *WorkingProjectFiles));
@@ -350,14 +360,17 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
             for (FXmlNode* subNode : subchildrenNodes) {
                 if (subNode->GetTag() == TEXT("WorkingDirectory")) {
                     WorkingDirectory = subNode->GetContent();
+                    FPaths::NormalizeFilename(WorkingDirectory);
                 }
 
                 if (subNode->GetTag() == TEXT("BuildCommand")) {
                     BuildCommand = subNode->GetContent();
+                    FPaths::NormalizeFilename(BuildCommand);
                 }
 
                 if (subNode->GetTag() == TEXT("CleanCommand")) {
                     CleanCommand = subNode->GetContent();
+                    FPaths::NormalizeFilename(CleanCommand);
                 }
             }
 

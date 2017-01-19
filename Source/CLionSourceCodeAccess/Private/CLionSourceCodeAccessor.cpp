@@ -239,10 +239,19 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
                                                                                                   this->Settings->bIncludeConfigs,
                                                                                                   this->Settings->bIncludePlugins,
                                                                                                   this->Settings->bIncludeShaders);
-        FPaths::NormalizeFilename(WorkingProjectFiles);
+        TArray<FString> WorkingProjectFilesLines;
+        WorkingProjectFiles.ParseIntoArrayLines(WorkingProjectFilesLines, true);
+
+        FString WorkingProjectFilesContent = TEXT("");
+        for (FString Line : WorkingProjectFilesLines)
+        {
+            FPaths::NormalizeFilename(Line);
+            WorkingProjectFilesContent.Append(FString::Printf(TEXT("%s\n"), *Line));
+        }
+
         // Add file set to the project cmake file (this is so we split things up, so CLion does't have
         // any issues with the file size of one individual file.
-        OutputProjectTemplate.Append(FString::Printf(TEXT("set(%s_FILES \n%s)\n"), *SubProjectName, *WorkingProjectFiles));
+        OutputProjectTemplate.Append(FString::Printf(TEXT("set(%s_FILES \n%s)\n"), *SubProjectName, *WorkingProjectFilesContent));
 
         // Time to output this, determine the output path
         FString ProjectOutputPath = FPaths::Combine(*ProjectFileOutputFolder, *FString::Printf(TEXT("%s.cmake"), *SubProjectName));

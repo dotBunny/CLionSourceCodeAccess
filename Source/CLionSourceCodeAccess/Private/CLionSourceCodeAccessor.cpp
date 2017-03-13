@@ -415,6 +415,12 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
                         FString::Printf(TEXT("add_custom_target(%s-Linux-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
                 ReturnContent +=
                         FString::Printf(TEXT("add_custom_target(%s-Linux-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
+#else
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Other-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Other-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
+
 #endif
             }
         }

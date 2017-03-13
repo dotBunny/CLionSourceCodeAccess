@@ -400,10 +400,22 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
                 ReturnContent +=
                         FString::Printf(TEXT("add_custom_target(%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *CleanCommand);
             } else {
+#if PLATFORM_WINDOWS
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Windows-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Windows-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
+#elif PLATFORM_MAC
                 ReturnContent +=
                         FString::Printf(TEXT("add_custom_target(%s-Mac-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
                 ReturnContent +=
                         FString::Printf(TEXT("add_custom_target(%s-Mac-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
+#elif PLATFORM_LINUX
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Linux-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
+                ReturnContent +=
+                        FString::Printf(TEXT("add_custom_target(%s-Linux-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
+#endif
             }
         }
     }

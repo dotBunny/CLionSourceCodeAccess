@@ -19,7 +19,7 @@
 		{
 			"Name" : "CLionSourceCodeAccess",
 			"Type" : "Developer",
-			"LoadingPhase" : "Default",
+			"LoadingPhase" : "PostEngineInit",
 			"WhitelistPlatforms" :
 			[
 				"Mac",

@@ -506,18 +506,27 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
         this->GenerateProjectFile();
     }
 
+
+    FString sourceFilesList = "";
+
+    // Build our paths based on what unreal sends to be opened
     for(const auto& SourcePath : AbsoluteSourcePaths)
     {
-        const FString Path = FString::Printf(TEXT("\"%s\""), *SourcePath);
-        FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, false, false, nullptr, 0, nullptr, nullptr);
-
-        if(!Proc.IsValid())
-        {
-            UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the source file (%s) failed."), *Path);
-            FPlatformProcess::CloseProc(Proc);
-            return true;
-        }
+        sourceFilesList = FString::Printf(TEXT("%s %s"), *sourceFilesList, *SourcePath);
     }
+
+    // Trim any whitespace on our source file list
+    sourceFilesList = sourceFilesList.Trim();
+
+    FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *sourceFilesList, true, false, false, nullptr, 0, nullptr, nullptr);
+
+    if(!Proc.IsValid())
+    {
+        UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the source file (%s) failed."), *sourceFilesList);
+        FPlatformProcess::CloseProc(Proc);
+        return true;
+    }
+
     return false;
 }
 

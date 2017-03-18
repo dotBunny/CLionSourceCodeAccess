@@ -1,8 +1,8 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 // Copyright 2016 dotBunny, Inc. All Rights Reserved.
 
-#include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSourceCodeAccessor.h"
+#include "CLionSourceCodeAccessPrivatePCH.h"
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 

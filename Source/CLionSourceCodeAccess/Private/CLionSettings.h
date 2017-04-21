@@ -36,7 +36,7 @@ public:
     /**
      * [optional] Path to a C compiler to be used in the CMakeList file.
      */
-    UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="C Compiler (Optional)"))
+    UPROPERTY(Config, EditAnywhere, Category="CMake Compiler", Meta=(DisplayName="C Compiler (Optional)"))
     FFilePath CCompiler;
 
     /**
@@ -48,49 +48,59 @@ public:
     /**
      * [optional] Path to a C++ compiler to be used in the CMakeList file."
      */
-    UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="C++ Compiler (Optional)"))
+    UPROPERTY(Config, EditAnywhere, Category="CMake Compiler", Meta=(DisplayName="C++ Compiler (Optional)"))
     FFilePath CXXCompiler;
 
 
 	/**
 	 * Include Config In Makefile
 	 */
-	UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="Include Configs"))
+	UPROPERTY(Config, EditAnywhere, Category="Additional Folders", Meta=(DisplayName="Include Configs"))
 	bool bIncludeConfigs = false;
 
 	/**
 	 * Include Plugins In Makefile
 	 */
-	UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="Include Plugins"))
+	UPROPERTY(Config, EditAnywhere, Category="Additional Folders", Meta=(DisplayName="Include Plugins"))
 	bool bIncludePlugins = false;
 
 
 	/**
 	 * Include Shaders In Makefile
 	 */
-	UPROPERTY(Config, EditAnywhere, Category="CMakeList", Meta=(DisplayName="Include Shaders"))
+	UPROPERTY(Config, EditAnywhere, Category="Additional Folders", Meta=(DisplayName="Include Shaders"))
 	bool bIncludeShaders = false;
 
     /**
-	 * Target Debug
+     * Target DebugGame
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Debug"))
+    bool bTargetDebug= false;
+    /**
+	 * Target DebugGame
 	 */
-    UPROPERTY(Config, EditAnywhere, Category="Target List", Meta=(DisplayName="DebugGame"))
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="DebugGame"))
     bool bTargetDebugGame = false;
     /**
     * Target Development
     */
-    UPROPERTY(Config, EditAnywhere, Category="Target List", Meta=(DisplayName="Development"))
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Development"))
     bool bTargetDevelopment = true;
 	/**
 	 * Target Shipping
 	 */
-    UPROPERTY(Config, EditAnywhere, Category="Target List", Meta=(DisplayName="Shipping"))
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Shipping"))
     bool bTargetShipping = false;
+    /**
+     * Target Test
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Test"))
+    bool bTargetTest = false;
 
     /**
      * Path to the Mono executable.
      */
-    UPROPERTY(Config, EditAnywhere, Category="Unreal", Meta=(DisplayName="Mono Executable"))
+    UPROPERTY(Config, EditAnywhere, Category="Unreal Engine", Meta=(DisplayName="Mono Executable"))
     FFilePath Mono;
 
 protected:

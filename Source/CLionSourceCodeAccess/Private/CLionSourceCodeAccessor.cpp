@@ -273,9 +273,11 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         FString CustomTargets = FCLionSourceCodeAccessor::GetBuildCommands(CurrentNode,
                                                                            SubProjectName,
                                                                            MonoPath,
+                                                                           this->Settings->bTargetDebug,
                                                                            this->Settings->bTargetDebugGame,
                                                                            this->Settings->bTargetDevelopment,
-                                                                           this->Settings->bTargetShipping);
+                                                                           this->Settings->bTargetShipping,
+                                                                           this->Settings->bTargetTest);
         OutputTemplate.Append(CustomTargets);
     }
 
@@ -338,20 +340,20 @@ FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *Cu
     return ReturnContent;
 }
 
-FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping)
+FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebug, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping, const bool &TargetTest)
 {
     FString ReturnContent = "";
 
     if (CurrentNode->GetTag() != TEXT("Settings")) {
         const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
         for (FXmlNode* Node : childrenNodes) {
-            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName, MonoPath, TargetDebugGame, TargetDevelopment, TargetShipping);
+            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName, MonoPath, TargetDebug, TargetDebugGame, TargetDevelopment, TargetShipping, TargetTest);
         }
     } else {
         const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
         for (FXmlNode* Node : childrenNodes) {
             if (Node->GetTag() == TEXT("Configuration")) {
-                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName, MonoPath, TargetDebugGame, TargetDevelopment, TargetShipping);
+                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName, MonoPath, TargetDebug, TargetDebugGame, TargetDevelopment, TargetShipping, TargetTest);
             }
         }
     }
@@ -359,7 +361,7 @@ FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const 
     return ReturnContent;
 }
 
-FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping) {
+FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebug, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping, const bool &TargetTest) {
     FString ReturnContent = "";
 
     const FString & ConfigurationName = CurrentNode->GetAttribute(TEXT("Name"));
@@ -399,9 +401,11 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
                 ReturnContent += FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n\n"));
             }
 
-            if ( (ConfigurationName == TEXT("DebugGame") && !TargetDebugGame) ||
+            if ( (ConfigurationName == TEXT("Debug") && !TargetDebug) ||
+                 (ConfigurationName == TEXT("DebugGame") && !TargetDebugGame) ||
                  (ConfigurationName == TEXT("Development") && !TargetDevelopment) ||
-                 (ConfigurationName == TEXT("Shipping") && !TargetShipping))
+                 (ConfigurationName == TEXT("Shipping") && !TargetShipping) ||
+                 (ConfigurationName == TEXT("Test") && !TargetTest))
             {
             }
             else

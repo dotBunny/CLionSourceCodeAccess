@@ -60,20 +60,20 @@ public:
 
 private:
 
-    /**
-     * A local storage of the working Project name as we parse files
-     */
-    FString WorkingProjectName;
+	/**
+	 * A local storage of the working Project name as we parse files
+	 */
+	FString WorkingProjectName;
 
 	/**
      * A local reference to the Settings object.
      */
 	UCLionSettings* Settings;
 
-    /**
-     * A local storage of the working Mono path found while parsing files
-     */
-    FString WorkingMonoPath;
+	/**
+	 * A local storage of the working Mono path found while parsing files
+	 */
+	FString WorkingMonoPath;
 
 
 
@@ -90,7 +90,9 @@ private:
 	 * @param The attribute that we want to collect.
 	 * @return A CMakeList compatible string set of the attributes.
 	 */
-	FString GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode, const FString &Tag, const FString &Attribute );
-    FString GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName);
-	FString HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName);
+	FString GetAttributeByTagWithRestrictions(FXmlNode* CurrentNode, const FString& Tag, const FString& Attribute);
+
+	FString GetBuildCommands(FXmlNode* CurrentNode, const FString& SubprojectName);
+
+	FString HandleConfiguration(FXmlNode* CurrentNode, const FString& SubprojectName);
 };

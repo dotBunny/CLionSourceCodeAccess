@@ -27,42 +27,42 @@ bool UCLionSettings::CheckSettings()
 		}
 	}
 #elif PLATFORM_MAC
-    if ( this->CLion.FilePath.IsEmpty())
-    {
-	    if (FPaths::FileExists(TEXT("/Applications/CLion.app/Contents/MacOS/clion")))
-	    {
-		    this->CLion.FilePath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
-	    }
-    }
-    if (this->Mono.FilePath.IsEmpty() )
-    {
-	    if (FPaths::FileExists(TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono")))
-	    {
-		    this->Mono.FilePath = TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono");
-	    }
-    }
-    if (this->CCompiler.FilePath.IsEmpty())
-    {
-        if(FPaths::FileExists(TEXT("/usr/bin/clang")))
-        {
-            this->CCompiler.FilePath = TEXT("/usr/bin/clang");
-        }
-    }
-    if (this->CXXCompiler.FilePath.IsEmpty())
-    {
-        if(FPaths::FileExists(TEXT("/usr/bin/clang++")))
-        {
-            this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
-        }
-    }
+	if (this->CLion.FilePath.IsEmpty())
+	{
+		if (FPaths::FileExists(TEXT("/Applications/CLion.app/Contents/MacOS/clion")))
+		{
+			this->CLion.FilePath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
+		}
+	}
+	if (this->Mono.FilePath.IsEmpty())
+	{
+		if (FPaths::FileExists(TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono")))
+		{
+			this->Mono.FilePath = TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono");
+		}
+	}
+	if (this->CCompiler.FilePath.IsEmpty())
+	{
+		if (FPaths::FileExists(TEXT("/usr/bin/clang")))
+		{
+			this->CCompiler.FilePath = TEXT("/usr/bin/clang");
+		}
+	}
+	if (this->CXXCompiler.FilePath.IsEmpty())
+	{
+		if (FPaths::FileExists(TEXT("/usr/bin/clang++")))
+		{
+			this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
+		}
+	}
 #else
 	if ( this->CLion.FilePath.IsEmpty())
-    {
-	    if(FPaths::FileExists(TEXT("/opt/clion/bin/clion.sh")))
-        {
-            this->CLion.FilePath = TEXT("/opt/clion/bin/clion.sh");
-        }
-    }
+	{
+		if(FPaths::FileExists(TEXT("/opt/clion/bin/clion.sh")))
+		{
+			this->CLion.FilePath = TEXT("/opt/clion/bin/clion.sh");
+		}
+	}
 	if (this->Mono.FilePath.IsEmpty() )
 	{
 		if (FPaths::FileExists(TEXT("/usr/bin/mono")))
@@ -74,20 +74,20 @@ bool UCLionSettings::CheckSettings()
 			this->Mono.FilePath = TEXT("/opt/mono/bin/mono");
 		}
 	}
-    if (this->CCompiler.FilePath.IsEmpty())
-    {
-        if(FPaths::FileExists(TEXT("/usr/bin/clang")))
-        {
-            this->CCompiler.FilePath = TEXT("/usr/bin/clang");
-        }
-    }
-    if (this->CXXCompiler.FilePath.IsEmpty())
-    {
-        if(FPaths::FileExists(TEXT("/usr/bin/clang++")))
-        {
-            this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
-        }
-    }
+	if (this->CCompiler.FilePath.IsEmpty())
+	{
+		if(FPaths::FileExists(TEXT("/usr/bin/clang")))
+		{
+			this->CCompiler.FilePath = TEXT("/usr/bin/clang");
+		}
+	}
+	if (this->CXXCompiler.FilePath.IsEmpty())
+	{
+		if(FPaths::FileExists(TEXT("/usr/bin/clang++")))
+		{
+			this->CXXCompiler.FilePath = TEXT("/usr/bin/clang++");
+		}
+	}
 
 #endif
 
@@ -100,22 +100,23 @@ bool UCLionSettings::CheckSettings()
 	}
 
 #if !PLATFORM_WINDOWS
-	if ( this->Mono.FilePath.IsEmpty())
+	if (this->Mono.FilePath.IsEmpty())
 	{
 		this->bSetupComplete = false;
 	}
 #endif
 
 
-    // Update CMakeList path
-    this->CachedCMakeListPath= FPaths::Combine(*FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), TEXT("CMakeLists.txt"));
+	// Update CMakeList path
+	this->CachedCMakeListPath = FPaths::Combine(*FPaths::ConvertRelativePathToFull(*FPaths::GameDir()),
+	                                            TEXT("CMakeLists.txt"));
 
 	return this->bSetupComplete;
 }
 
 FString UCLionSettings::GetCMakeListPath()
 {
-    return this->CachedCMakeListPath;
+	return this->CachedCMakeListPath;
 }
 
 bool UCLionSettings::IsSetup()
@@ -124,22 +125,21 @@ bool UCLionSettings::IsSetup()
 }
 
 
-
 #if WITH_EDITOR
 
-void UCLionSettings::PreEditChange(UProperty *PropertyAboutToChange)
+void UCLionSettings::PreEditChange(UProperty* PropertyAboutToChange)
 {
 
-    Super::PreEditChange(PropertyAboutToChange);
+	Super::PreEditChange(PropertyAboutToChange);
 
-    // Cache our previous values
+	// Cache our previous values
 	this->PreviousCCompiler = this->CCompiler.FilePath;
 	this->PreviousMono = this->Mono.FilePath;
 	this->PreviousCLion = this->CLion.FilePath;
 	this->PreviousCXXCompiler = this->CXXCompiler.FilePath;
 }
 
-void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &PropertyChangedEvent)
+void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	const FName MemberPropertyName = (PropertyChangedEvent.Property != nullptr)
 	                                 ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
@@ -219,15 +219,17 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent &Proper
 	}
 
 	// Check C++ Compiler Path
-	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CXXCompiler)) {
+	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CXXCompiler))
+	{
 		this->CXXCompiler.FilePath = FPaths::ConvertRelativePathToFull(this->CXXCompiler.FilePath);
 
 		if (this->CXXCompiler.FilePath == this->PreviousCXXCompiler)
-        {
-            return;
-        }
+		{
+			return;
+		}
 
-		if (!FPaths::FileExists(CXXCompiler.FilePath)) {
+		if (!FPaths::FileExists(CXXCompiler.FilePath))
+		{
 			this->CXXCompiler.FilePath = this->PreviousCXXCompiler;
 			return;
 		}

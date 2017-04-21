@@ -51,6 +51,35 @@ public:
     UPROPERTY(Config, EditAnywhere, Category="CMake Compiler", Meta=(DisplayName="C++ Compiler (Optional)"))
     FFilePath CXXCompiler;
 
+    /**
+    * Target Configuration Debug
+    */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Configurations", Meta=(DisplayName="Debug"))
+    bool bConfigureDebug= false;
+
+    /**
+	 * Target Configuration DebugGame
+	 */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Configurations", Meta=(DisplayName="DebugGame"))
+    bool bConfigureDebugGame = false;
+
+    /**
+    * Target Configuration Development
+    */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Configurations", Meta=(DisplayName="Development"))
+    bool bConfigureDevelopment = true;
+
+    /**
+     * Target Configuration Shipping
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Configurations", Meta=(DisplayName="Shipping"))
+    bool bConfigureShipping = false;
+
+    /**
+     * Target Configuration Test
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Configurations", Meta=(DisplayName="Test"))
+    bool bConfigureTest = false;
 
 	/**
 	 * Include Config In Makefile
@@ -64,38 +93,33 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="Additional Folders", Meta=(DisplayName="Include Plugins"))
 	bool bIncludePlugins = false;
 
-
 	/**
 	 * Include Shaders In Makefile
 	 */
 	UPROPERTY(Config, EditAnywhere, Category="Additional Folders", Meta=(DisplayName="Include Shaders"))
 	bool bIncludeShaders = false;
 
-    /**
-     * Target DebugGame
-     */
-    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Debug"))
-    bool bTargetDebug= false;
-    /**
-	 * Target DebugGame
-	 */
-    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="DebugGame"))
-    bool bTargetDebugGame = false;
-    /**
-    * Target Development
-    */
-    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Development"))
-    bool bTargetDevelopment = true;
 	/**
-	 * Target Shipping
+	 * Target Project Game Editor
 	 */
-    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Shipping"))
-    bool bTargetShipping = false;
+	UPROPERTY(Config, EditAnywhere, Category="CMake Target Projects", Meta=(DisplayName="Project Game"))
+	bool bProjectSpecificGame = false;
+	/**
+	 * Target Project Specific Editor
+	 */
+	UPROPERTY(Config, EditAnywhere, Category="CMake Target Projects", Meta=(DisplayName="Project Editor"))
+	bool bProjectSpecificEditor = true;
+
     /**
-     * Target Test
+     * Target Project UE4 Editor
      */
-    UPROPERTY(Config, EditAnywhere, Category="CMake Target List", Meta=(DisplayName="Test"))
-    bool bTargetTest = false;
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Projects", Meta=(DisplayName="UE4 Editor"))
+    bool bProjectUE4Editor = false;
+    /**
+     * Target Project UE4 Game
+     */
+    UPROPERTY(Config, EditAnywhere, Category="CMake Target Projects", Meta=(DisplayName="UE4 Game"))
+    bool bProjectUE4Game = false;
 
     /**
      * Path to the Mono executable.

@@ -60,8 +60,13 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     FPaths::NormalizeFilename(ProjectFilePath);
     FString ProjectPath = *FPaths::ConvertRelativePathToFull(*FPaths::GameDir());
     FPaths::NormalizeFilename(ProjectPath);
-    FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath, true);
-    FPaths::NormalizeFilename(ProjectName);
+
+    // Assign and filter our project name
+    this->WorkingProjectName = FPaths::GetBaseFilename(ProjectFilePath, true);
+    FPaths::NormalizeFilename(this->WorkingProjectName);
+
+    // Reset our working folder, just incase
+    this->WorkingMonoPath = "";
 
     // Start our master CMakeList file
     FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
@@ -74,13 +79,13 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	const FString BuildProjectCommand = *UnrealBuildToolPath;
     const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
                                                *ProjectFilePath,
-                                               *ProjectName);
+                                               *this->WorkingProjectName);
 #else
 	const FString BuildProjectCommand = *this->Settings->Mono.FilePath;
     const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" \"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
                                                *UnrealBuildToolPath,
                                                *ProjectFilePath,
-                                               *ProjectName);
+                                               *this->WorkingProjectName);
 #endif
 
 	FProcHandle BuildProjectProcess = FPlatformProcess::CreateProc(*BuildProjectCommand, *BuildProjectParameters, true, true, false, nullptr, 0, nullptr, nullptr);
@@ -98,7 +103,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CheckingFiles", "Checking Files"));
 
     // Setup path for Includes files
-    FString IncludeDirectoriesPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeCompletionFolders.txt"), *ProjectName));
+    FString IncludeDirectoriesPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeCompletionFolders.txt"), *this->WorkingProjectName));
     FPaths::NormalizeFilename(IncludeDirectoriesPath);
     if(!FPaths::FileExists(IncludeDirectoriesPath))
     {
@@ -108,7 +113,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Setup path for Definitions file
-    FString DefinitionsPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeLitePreProcessor.txt"), *ProjectName));
+    FString DefinitionsPath = FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%sCodeLitePreProcessor.txt"), *this->WorkingProjectName));
     FPaths::NormalizeFilename(DefinitionsPath);
     if(!FPaths::FileExists(DefinitionsPath))
     {
@@ -118,7 +123,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Setup path for our master project file
-    FString GeneratedProjectFilePath =  FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%s.workspace"), *ProjectName));
+    FString GeneratedProjectFilePath =  FPaths::Combine(*ProjectPath, *FString::Printf(TEXT("%s.workspace"), *this->WorkingProjectName));
     FPaths::NormalizeFilename(GeneratedProjectFilePath);
     if(!FPaths::FileExists(GeneratedProjectFilePath))
     {
@@ -212,13 +217,21 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 
     // This is gonna function as a storage block of what we think the mono path (inside of HandleConfiguration)
-    FString MonoPath = "";
-
-
     for (FXmlNode* Node : ProjectNodes) {
         // Increment Progress Bar
         FString OutputProjectTemplate = "";
         FString SubProjectName = Node->GetAttribute("Name");
+
+        // Determine if we want this subproject
+        if (    !this->Settings->bProjectSpecificEditor && (SubProjectName.Contains(this->WorkingProjectName) && SubProjectName.EndsWith("Editor")) ||
+                !this->Settings->bProjectSpecificGame && SubProjectName.Equals(this->WorkingProjectName) ||
+                !this->Settings->bProjectUE4Editor && SubProjectName.Equals("UE4Editor") ||
+                !this->Settings->bProjectUE4Game && SubProjectName.Equals("UE4Game") )
+        {
+            continue;
+        }
+
+
         FString SubProjectFile = FPaths::Combine(*ProjectPath, *Node->GetAttribute("Path"));
 
 	    SubProjectGenerationTask.EnterProgressFrame(1);
@@ -237,12 +250,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         FXmlNode * CurrentNode = WorkingGeneratedProjectFile->GetRootNode();
 
         // Call our recursive function to delve deep and get the data we need
-        FString WorkingProjectFiles = FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(CurrentNode ,
-                                                                                                  TEXT("File"),
-                                                                                                  TEXT("Name"),
-                                                                                                  this->Settings->bIncludeConfigs,
-                                                                                                  this->Settings->bIncludePlugins,
-                                                                                                  this->Settings->bIncludeShaders);
+        FString WorkingProjectFiles = this->GetAttributeByTagWithRestrictions(CurrentNode , TEXT("File"), TEXT("Name"));
         TArray<FString> WorkingProjectFilesLines;
         WorkingProjectFiles.ParseIntoArrayLines(WorkingProjectFilesLines, true);
 
@@ -270,15 +278,9 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 
         //Get working directory and build command
-        FString CustomTargets = FCLionSourceCodeAccessor::GetBuildCommands(CurrentNode,
-                                                                           SubProjectName,
-                                                                           MonoPath,
-                                                                           this->Settings->bTargetDebug,
-                                                                           this->Settings->bTargetDebugGame,
-                                                                           this->Settings->bTargetDevelopment,
-                                                                           this->Settings->bTargetShipping,
-                                                                           this->Settings->bTargetTest);
+        FString CustomTargets = this->GetBuildCommands(CurrentNode, SubProjectName);
         OutputTemplate.Append(CustomTargets);
+
     }
 
     ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CreatingCMakeListsFile", "Creating CMakeLists.txt File"));
@@ -294,7 +296,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Add Executable Definition To Main Template
-    OutputTemplate.Append(FString::Printf(TEXT("\nadd_executable(%sEditorFake ${%sEditor_FILES})\n"), *ProjectName, *ProjectName));
+    OutputTemplate.Append(FString::Printf(TEXT("\nadd_executable(IgnoreMePlease ${%sEditor_FILES})\n"), *this->WorkingProjectName));
 
     // Write out the file
     if (!FFileHelper::SaveStringToFile(OutputTemplate, *this->Settings->GetCMakeListPath(),  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {
@@ -305,7 +307,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     return true;
 }
 
-FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode, const FString &Tag, const FString &Attribute, const bool &IncludeConfigs, const bool &IncludePlugins, const bool &IncludeShaders)
+FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode, const FString &Tag, const FString &Attribute)
 {
     FString ReturnContent = "";
 
@@ -320,40 +322,40 @@ FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *Cu
         if (Node->GetTag() == TEXT("VirtualDirectory")) {
             const FString & name = Node->GetAttribute(TEXT("Name"));
 
-			if (!IncludeConfigs && name == TEXT("Config"))
+			if (!this->Settings->bIncludeConfigs && name == TEXT("Config"))
 			{
 				continue;
 			}
-	        if (!IncludePlugins && name == TEXT("Plugins"))
+	        if (!this->Settings->bIncludePlugins && name == TEXT("Plugins"))
 	        {
 		        continue;
 	        }
-	        if (!IncludeShaders && name == TEXT("Shaders"))
+	        if (!this->Settings->bIncludeShaders && name == TEXT("Shaders"))
 	        {
 		        continue;
 	        }
         }
 
-        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(Node, Tag, Attribute, IncludeConfigs, IncludePlugins, IncludeShaders);
+        ReturnContent += FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(Node, Tag, Attribute);
     }
 
     return ReturnContent;
 }
 
-FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebug, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping, const bool &TargetTest)
+FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName)
 {
     FString ReturnContent = "";
 
     if (CurrentNode->GetTag() != TEXT("Settings")) {
         const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
         for (FXmlNode* Node : childrenNodes) {
-            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName, MonoPath, TargetDebug, TargetDebugGame, TargetDevelopment, TargetShipping, TargetTest);
+            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName);
         }
     } else {
         const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
         for (FXmlNode* Node : childrenNodes) {
             if (Node->GetTag() == TEXT("Configuration")) {
-                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName, MonoPath, TargetDebug, TargetDebugGame, TargetDevelopment, TargetShipping, TargetTest);
+                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName);
             }
         }
     }
@@ -361,7 +363,7 @@ FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const 
     return ReturnContent;
 }
 
-FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebug, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping, const bool &TargetTest) {
+FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName) {
     FString ReturnContent = "";
 
     const FString & ConfigurationName = CurrentNode->GetAttribute(TEXT("Name"));
@@ -394,18 +396,18 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
                 }
             }
 
-            if (!MonoPath.Equals(WorkingDirectory)) { // Do this to avoid duplication in CMakeLists.txt
-                ReturnContent += FString::Printf(TEXT("set(MONO_ROOT_PATH \"%s\")\n") , *WorkingDirectory);
-                MonoPath = WorkingDirectory;
-
+            if (!this->WorkingMonoPath.Equals(WorkingDirectory)) { // Do this to avoid duplication in CMakeLists.txt
+                ReturnContent += FString::Printf(TEXT("\nset(MONO_ROOT_PATH \"%s\")\n") , *WorkingDirectory);
                 ReturnContent += FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n\n"));
+
+                this->WorkingMonoPath = WorkingDirectory;
             }
 
-            if ( (ConfigurationName == TEXT("Debug") && !TargetDebug) ||
-                 (ConfigurationName == TEXT("DebugGame") && !TargetDebugGame) ||
-                 (ConfigurationName == TEXT("Development") && !TargetDevelopment) ||
-                 (ConfigurationName == TEXT("Shipping") && !TargetShipping) ||
-                 (ConfigurationName == TEXT("Test") && !TargetTest))
+            if ( (ConfigurationName == TEXT("Debug") && !this->Settings->bConfigureDebug) ||
+                 (ConfigurationName == TEXT("DebugGame") && !this->Settings->bConfigureDebugGame) ||
+                 (ConfigurationName == TEXT("Development") && !this->Settings->bConfigureDevelopment) ||
+                 (ConfigurationName == TEXT("Shipping") && !this->Settings->bConfigureShipping) ||
+                 (ConfigurationName == TEXT("Test") && !this->Settings->bConfigureTest))
             {
             }
             else

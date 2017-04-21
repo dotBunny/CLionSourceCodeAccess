@@ -211,6 +211,10 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	SubProjectGenerationTask.MakeDialog();
 
 
+    // This is gonna function as a storage block of what we think the mono path (inside of HandleConfiguration)
+    FString MonoPath = "";
+
+
     for (FXmlNode* Node : ProjectNodes) {
         // Increment Progress Bar
         FString OutputProjectTemplate = "";
@@ -264,8 +268,14 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
         // Add Include Of Project Files
         OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *ProjectOutputPath));
 
+
         //Get working directory and build command
-        FString CustomTargets = FCLionSourceCodeAccessor::GetBuildCommands(CurrentNode, SubProjectName);
+        FString CustomTargets = FCLionSourceCodeAccessor::GetBuildCommands(CurrentNode,
+                                                                           SubProjectName,
+                                                                           MonoPath,
+                                                                           this->Settings->bTargetDebugGame,
+                                                                           this->Settings->bTargetDevelopment,
+                                                                           this->Settings->bTargetShipping);
         OutputTemplate.Append(CustomTargets);
     }
 
@@ -328,21 +338,20 @@ FString FCLionSourceCodeAccessor::GetAttributeByTagWithRestrictions(FXmlNode *Cu
     return ReturnContent;
 }
 
-FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName)
+FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping)
 {
     FString ReturnContent = "";
-    FString MonoPath = "";
 
     if (CurrentNode->GetTag() != TEXT("Settings")) {
         const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
         for (FXmlNode* Node : childrenNodes) {
-            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName);
+            ReturnContent += FCLionSourceCodeAccessor::GetBuildCommands(Node, SubprojectName, MonoPath, TargetDebugGame, TargetDevelopment, TargetShipping);
         }
     } else {
         const TArray<FXmlNode*> childrenNodes = CurrentNode->GetChildrenNodes();
         for (FXmlNode* Node : childrenNodes) {
             if (Node->GetTag() == TEXT("Configuration")) {
-                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName, MonoPath);
+                ReturnContent += FCLionSourceCodeAccessor::HandleConfiguration(Node, SubprojectName, MonoPath, TargetDebugGame, TargetDevelopment, TargetShipping);
             }
         }
     }
@@ -350,7 +359,7 @@ FString FCLionSourceCodeAccessor::GetBuildCommands(FXmlNode *CurrentNode, const 
     return ReturnContent;
 }
 
-FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath) {
+FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping) {
     FString ReturnContent = "";
 
     const FString & ConfigurationName = CurrentNode->GetAttribute(TEXT("Name"));
@@ -383,45 +392,23 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode *CurrentNode, con
                 }
             }
 
-            ReturnContent +=
-                    FString::Printf(TEXT("\n# Custom target for %s project, %s configuration\n"), *SubprojectName, *ConfigurationName);
-            if (MonoPath != WorkingDirectory) { // Do this to avoid duplication in CMakeLists.txt
-                ReturnContent +=
-                        FString::Printf(TEXT("set(MONO_ROOT_PATH \"%s\")\n") , *WorkingDirectory);
+            if (!MonoPath.Equals(WorkingDirectory)) { // Do this to avoid duplication in CMakeLists.txt
+                ReturnContent += FString::Printf(TEXT("set(MONO_ROOT_PATH \"%s\")\n") , *WorkingDirectory);
                 MonoPath = WorkingDirectory;
 
-                ReturnContent +=
-                        FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n\n"));
+                ReturnContent += FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n\n"));
             }
 
-            if (ConfigurationName == TEXT("Development")) {
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s ${BUILD} && %s -game)\n") , *SubprojectName , *BuildCommand);
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *CleanCommand);
-            } else {
-#if PLATFORM_WINDOWS
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Windows-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Windows-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
-#elif PLATFORM_MAC
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Mac-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Mac-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
-#elif PLATFORM_LINUX
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Linux-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Linux-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
-#else
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Other-%s ${BUILD} && %s -game)\n") , *SubprojectName , *ConfigurationName , *BuildCommand);
-                ReturnContent +=
-                        FString::Printf(TEXT("add_custom_target(%s-Other-%s-clean ${BUILD} && %s)\n\n") , *SubprojectName , *ConfigurationName , *CleanCommand);
-
-#endif
+            if ( (ConfigurationName == TEXT("DebugGame") && !TargetDebugGame) ||
+                 (ConfigurationName == TEXT("Development") && !TargetDevelopment) ||
+                 (ConfigurationName == TEXT("Shipping") && !TargetShipping))
+            {
+            }
+            else
+            {
+                ReturnContent += FString::Printf(TEXT("\n# Custom target for %s project, %s configuration\n"), *SubprojectName, *ConfigurationName);
+                ReturnContent += FString::Printf(TEXT("add_custom_target(%s-%s ${BUILD} && %s -game)\n"), *SubprojectName, *ConfigurationName,  *BuildCommand);
+                ReturnContent += FString::Printf(TEXT("add_custom_target(%s-%s-CLEAN ${BUILD} && %s)\n\n"), *SubprojectName, *ConfigurationName, *CleanCommand);
             }
         }
     }

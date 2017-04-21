@@ -80,6 +80,6 @@ private:
 	 */
 	static FString GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode, const FString &Tag, const FString &Attribute, const bool &IncludeConfigs, const bool &IncludePlugins, const bool &IncludeShaders);
 
-	static FString GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName);
-	static FString HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath);
+	static FString GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping);
+	static FString HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath, const bool &TargetDebugGame, const bool &TargetDevelopment, const bool &TargetShipping);
 };

@@ -1,7 +1,7 @@
 {
 	"FileVersion" : 3,
-	"Version" : 1,
-	"VersionName" : "0.85",
+	"Version" : 100,
+	"VersionName" : "1.00",
 	"FriendlyName" : "CLion Integration",
 	"Description" : "Allows access to source code in CLion.",
 	"Category" : "Programming",

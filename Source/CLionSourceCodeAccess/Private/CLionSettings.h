@@ -72,6 +72,22 @@ public:
 	bool bIncludeShaders = false;
 
     /**
+	 * Target Debug
+	 */
+    UPROPERTY(Config, EditAnywhere, Category="Target List", Meta=(DisplayName="DebugGame"))
+    bool bTargetDebugGame = false;
+    /**
+    * Target Development
+    */
+    UPROPERTY(Config, EditAnywhere, Category="Target List", Meta=(DisplayName="Development"))
+    bool bTargetDevelopment = true;
+	/**
+	 * Target Shipping
+	 */
+    UPROPERTY(Config, EditAnywhere, Category="Target List", Meta=(DisplayName="Shipping"))
+    bool bTargetShipping = false;
+
+    /**
      * Path to the Mono executable.
      */
     UPROPERTY(Config, EditAnywhere, Category="Unreal", Meta=(DisplayName="Mono Executable"))

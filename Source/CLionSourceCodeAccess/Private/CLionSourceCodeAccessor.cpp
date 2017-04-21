@@ -296,7 +296,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
     }
 
     // Add Executable Definition To Main Template
-    OutputTemplate.Append(FString::Printf(TEXT("\nadd_executable(IgnoreMePlease ${%sEditor_FILES})\n"), *this->WorkingProjectName));
+    OutputTemplate.Append(FString::Printf(TEXT("\nadd_executable(PleaseIgnoreMe ${%sEditor_FILES})\n"), *this->WorkingProjectName));
 
     // Write out the file
     if (!FFileHelper::SaveStringToFile(OutputTemplate, *this->Settings->GetCMakeListPath(),  FFileHelper::EEncodingOptions::Type::ForceAnsi)) {

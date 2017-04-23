@@ -75,7 +75,19 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 	// Start our master CMakeList file
 	FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
-	OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n\n"));
+	OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n"));
+
+	// Handle CLang++ / CLang (If Defined)
+	if (!this->Settings->CXXCompiler.FilePath.IsEmpty())
+	{
+		OutputTemplate.Append(
+				FString::Printf(TEXT("set(CMAKE_CXX_COMPILER \"%s\")\n"), *this->Settings->CXXCompiler.FilePath));
+	}
+	if (!this->Settings->CCompiler.FilePath.IsEmpty())
+	{
+		OutputTemplate.Append(
+				FString::Printf(TEXT("set(CMAKE_C_COMPILER \"%s\")\n"), *this->Settings->CCompiler.FilePath));
+	}
 
 	// Increase our progress
 	ProjectGenerationTask.EnterProgressFrame(10, LOCTEXT("GeneratingCodLiteProject", "Generating CodeLite Project"));
@@ -305,18 +317,6 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	}
 
 	ProjectGenerationTask.EnterProgressFrame(1, LOCTEXT("CreatingCMakeListsFile", "Creating CMakeLists.txt File"));
-
-	// Handle CLang++ / CLang (If Defined)
-	if (!this->Settings->CXXCompiler.FilePath.IsEmpty())
-	{
-		OutputTemplate.Append(
-				FString::Printf(TEXT("set(CMAKE_CXX_COMPILER \"%s\")\n"), *this->Settings->CXXCompiler.FilePath));
-	}
-	if (!this->Settings->CCompiler.FilePath.IsEmpty())
-	{
-		OutputTemplate.Append(
-				FString::Printf(TEXT("set(CMAKE_C_COMPILER \"%s\")\n"), *this->Settings->CCompiler.FilePath));
-	}
 
 	// Add Executable Definition To Main Template
 	OutputTemplate.Append(

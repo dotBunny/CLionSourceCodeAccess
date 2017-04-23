@@ -122,10 +122,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "CMake Target Projects", Meta = (DisplayName = "UE4 Game"))
 	bool bProjectUE4Game = false;
 
+	// TODO: We can't !PLATFORM_WINDOWS this as UBT/UHT barfs
 	/**
-	 * Path to the Mono executable.
+	 * Path to the Mono executable (Required on non-Windows platforms).
 	 */
-	UPROPERTY(Config, EditAnywhere, Category = "Unreal Engine", Meta = (DisplayName = "Mono Executable"))
+	UPROPERTY(Config, EditAnywhere, Category = "Unreal Engine", Meta = (DisplayName = "Mono Executable (Ignore On Windows)"))
 	FFilePath Mono;
 
 protected:

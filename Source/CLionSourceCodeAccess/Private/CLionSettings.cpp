@@ -134,9 +134,12 @@ void UCLionSettings::PreEditChange(UProperty* PropertyAboutToChange)
 
 	// Cache our previous values
 	this->PreviousCCompiler = this->CCompiler.FilePath;
-	this->PreviousMono = this->Mono.FilePath;
 	this->PreviousCLion = this->CLion.FilePath;
 	this->PreviousCXXCompiler = this->CXXCompiler.FilePath;
+#if !PLATFORM_WINDOWS
+	this->PreviousMono = this->Mono.FilePath;
+#endif
+
 }
 
 void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
@@ -179,6 +182,7 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 		}
 	}
 
+#if !PLATFORM_WINDOWS
 	// Mono Path
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, Mono))
 	{
@@ -198,11 +202,19 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 			return;
 		}
 	}
+#endif
 
 
 	// Check C Compiler Path
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CCompiler))
 	{
+		// Bail out if you've wiped it out
+		if (this->CCompiler.FilePath.IsEmpty())
+		{
+			this->bRequireRefresh = true;
+			return;
+		}
+
 		this->CCompiler.FilePath = FPaths::ConvertRelativePathToFull(this->CCompiler.FilePath);
 
 		if (this->CCompiler.FilePath == this->PreviousCCompiler)
@@ -221,6 +233,12 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 	// Check C++ Compiler Path
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CXXCompiler))
 	{
+		if (this->CXXCompiler.FilePath.IsEmpty())
+		{
+			this->bRequireRefresh = true;
+			return;
+		}
+
 		this->CXXCompiler.FilePath = FPaths::ConvertRelativePathToFull(this->CXXCompiler.FilePath);
 
 		if (this->CXXCompiler.FilePath == this->PreviousCXXCompiler)

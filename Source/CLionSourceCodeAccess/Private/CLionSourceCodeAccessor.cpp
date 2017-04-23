@@ -89,6 +89,9 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 				FString::Printf(TEXT("set(CMAKE_C_COMPILER \"%s\")\n"), *this->Settings->CCompiler.FilePath));
 	}
 
+	// Add an empty line in the file, because we like organization.
+	OutputTemplate.Append(TEXT("\n"));
+
 	// Increase our progress
 	ProjectGenerationTask.EnterProgressFrame(10, LOCTEXT("GeneratingCodLiteProject", "Generating CodeLite Project"));
 
@@ -320,7 +323,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 	// Add Executable Definition To Main Template
 	OutputTemplate.Append(
-			FString::Printf(TEXT("\nadd_executable(PleaseIgnoreMe ${%sEditor_FILES})\n"), *this->WorkingProjectName));
+			FString::Printf(TEXT("add_executable(PleaseIgnoreMe ${%sEditor_FILES})"), *this->WorkingProjectName));
 
 	// Write out the file
 	if (!FFileHelper::SaveStringToFile(OutputTemplate, *this->Settings->GetCMakeListPath(),
@@ -441,7 +444,7 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode* CurrentNode, con
 			if (!this->WorkingMonoPath.Equals(WorkingDirectory))
 			{ // Do this to avoid duplication in CMakeLists.txt
 				ReturnContent += FString::Printf(TEXT("\nset(MONO_ROOT_PATH \"%s\")\n"), *WorkingDirectory);
-				ReturnContent += FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n\n"));
+				ReturnContent += FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n"));
 
 				this->WorkingMonoPath = WorkingDirectory;
 			}

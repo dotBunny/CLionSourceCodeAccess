@@ -1,4 +1,5 @@
-// Copyright 2016 dotBunny, Inc. All Rights Reserved.
+// Copyright 2017 dotBunny Inc. All Rights Reserved.
+
 #pragma once
 
 #include "CLionSourceCodeAccessPrivatePCH.h"

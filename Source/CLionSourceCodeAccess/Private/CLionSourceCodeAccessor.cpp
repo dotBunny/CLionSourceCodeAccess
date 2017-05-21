@@ -253,11 +253,11 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 		FString SubProjectName = Node->GetAttribute("Name");
 
 		// Determine if we want this subproject
-		if (!this->Settings->bProjectSpecificEditor &&
-		    (SubProjectName.Contains(this->WorkingProjectName) && SubProjectName.EndsWith("Editor")) ||
-		    !this->Settings->bProjectSpecificGame && SubProjectName.Equals(this->WorkingProjectName) ||
-		    !this->Settings->bProjectUE4Editor && SubProjectName.Equals("UE4Editor") ||
-		    !this->Settings->bProjectUE4Game && SubProjectName.Equals("UE4Game"))
+		if ((!this->Settings->bProjectSpecificEditor &&
+		    (SubProjectName.Contains(this->WorkingProjectName) && SubProjectName.EndsWith("Editor"))) ||
+		    (!this->Settings->bProjectSpecificGame && SubProjectName.Equals(this->WorkingProjectName)) ||
+		    (!this->Settings->bProjectUE4Editor && SubProjectName.Equals("UE4Editor")) ||
+		    (!this->Settings->bProjectUE4Game && SubProjectName.Equals("UE4Game")))
 		{
 			continue;
 		}

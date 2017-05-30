@@ -84,6 +84,12 @@ public:
 	bool bConfigureTest = false;
 
 	/**
+	* General Visual Studio Code Project Files
+	*/
+	UPROPERTY(Config, EditAnywhere, Category = "Visual Studio Code", Meta = (DisplayName = "Generate c_cpp_properties.json File"))
+	bool bGenerateVisualStudioCodeProject = false;
+	
+	/**
 	 * Include Config In Makefile
 	 */
 	UPROPERTY(Config, EditAnywhere, Category = "Additional Folders", Meta = (DisplayName = "Include Configs"))

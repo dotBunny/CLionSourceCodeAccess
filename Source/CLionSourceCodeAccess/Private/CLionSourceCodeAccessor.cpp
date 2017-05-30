@@ -175,10 +175,18 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	IncludeDirectoriesData.ParseIntoArrayLines(IncludeDirectoriesLines, true);
 
 	FString IncludeDirectoriesContent = TEXT("set(INCLUDE_DIRECTORIES \n");
+
+	// Friendly requested helper for VS Code folks (this is not the main stay of the plugin, but it works)
+	FString IncludeDirectoriesJSON = TEXT("");
+
 	for (FString Line : IncludeDirectoriesLines)
 	{
 		FPaths::NormalizeFilename(Line);
 		IncludeDirectoriesContent.Append(FString::Printf(TEXT("\t\"%s\"\n"), *Line));
+
+		if ( this->Settings->bGenerateVisualStudioCodeProject ) {
+			IncludeDirectoriesJSON.Append(FString::Printf(TEXT("\n\t\t\t\"%s\","), *Line));
+		}
 	}
 	IncludeDirectoriesContent.Append(TEXT(")\ninclude_directories(${INCLUDE_DIRECTORIES})\n"));
 
@@ -192,6 +200,40 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 		return false;
 	}
 	OutputTemplate.Append(FString::Printf(TEXT("include(\"%s\")\n"), *IncludeDirectoriesOutputPath));
+
+
+	// Output our VSCode project json file
+	if ( this->Settings->bGenerateVisualStudioCodeProject )
+	{
+
+		// Output Path
+		FString IncludeJSONOutputPath = FPaths::Combine(*ProjectPath, TEXT(".vscode"), TEXT("c_cpp_properties.json"));
+
+		// Build Content
+		FString JSONOutput = TEXT("");
+#if PLATFORM_MAC
+		JSONOutput.Append(TEXT("{\n\t\"configurations\": [\n\t{\n\t\t\"name\": \"Mac\",\n\t\t\"includePath\": ["));
+#elif PLATFORM_LINUX
+		JSONOutput.Append(TEXT("{\n\t\"configurations\": [\n\t{\n\t\t\"name\": \"Linux\",\n\t\t\"includePath\": ["));
+#else
+		JSONOutput.Append(TEXT("{\n\t\"configurations\": [\n\t{\n\t\t\"name\": \"Windows\",\n\t\t\"includePath\": ["));
+#endif
+		IncludeDirectoriesJSON.RemoveFromEnd(TEXT(","), ESearchCase::Type::IgnoreCase);
+
+		JSONOutput.Append(IncludeDirectoriesJSON);
+		JSONOutput.Append(TEXT("\n\t\t\t],\n\t\t\t\"browse\" : {\n\t\t\t\t\"limitSymbolsToIncludedHeaders\" : true, \n\t\t\t\t\"path\": ["));
+		JSONOutput.Append(IncludeDirectoriesJSON);
+		JSONOutput.Append(TEXT("\n\t\t\t\t]\n\t\t\t}\n\t\t}\n\t]\n}"));
+
+
+		if (!FFileHelper::SaveStringToFile(JSONOutput, *IncludeJSONOutputPath,
+		                                   FFileHelper::EEncodingOptions::Type::ForceAnsi))
+		{
+			UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *IncludeJSONOutputPath);
+			return false;
+		}
+
+	}
 
 	// Gather our information on definitions
 	FString DefinitionsData;

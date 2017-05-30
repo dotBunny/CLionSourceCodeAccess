@@ -1,8 +1,8 @@
 {
 	"FileVersion" : 3,
 	"EngineVersion" : "4.x.0",
-	"Version" : 102,
-	"VersionName" : "1.02",
+	"Version" : 103,
+	"VersionName" : "1.03",
 	"FriendlyName" : "CLion Integration",
 	"Description" : "Allows access to source code in CLion.",
 	"Category" : "Programming",

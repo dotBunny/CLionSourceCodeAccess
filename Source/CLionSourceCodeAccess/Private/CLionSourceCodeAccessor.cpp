@@ -88,6 +88,11 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 				FString::Printf(TEXT("set(CMAKE_C_COMPILER \"%s\")\n"), *this->Settings->CCompiler.FilePath));
 	}
 
+	if (this->Settings->bGenerateVisualStudioCodeProject)
+	{
+		OutputTemplate.Append(TEXT("set(CMAKE_EXPORT_COMPILE_COMMANDS ON)\n"));
+	}
+
 	// Add an empty line in the file, because we like organization.
 	OutputTemplate.Append(TEXT("\n"));
 

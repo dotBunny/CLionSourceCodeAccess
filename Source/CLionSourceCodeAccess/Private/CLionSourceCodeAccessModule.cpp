@@ -1,11 +1,11 @@
 // Copyright 2017 dotBunny Inc. All Rights Reserved.
 
-#include "CLionSourceCodeAccessModule.h"
 #include "CLionSourceCodeAccessPrivatePCH.h"
 #include "Runtime/Core/Public/Features/IModularFeatures.h"
 #include "Editor/LevelEditor/Public/LevelEditor.h"
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
+#include "CLionSourceCodeAccessModule.h"
 #include "CLionSettings.h"
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"

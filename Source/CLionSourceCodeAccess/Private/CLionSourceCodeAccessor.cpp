@@ -506,7 +506,7 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode* CurrentNode, con
 			{
 				ReturnContent += FString::Printf(TEXT("\n# Custom target for %s project, %s configuration\n"),
 				                                 *SubprojectName, *ConfigurationName);
-				ReturnContent += FString::Printf(TEXT("add_custom_target(%s-%s ${BUILD} && %s -game)\n"),
+				ReturnContent += FString::Printf(TEXT("add_custom_target(%s-%s ${BUILD} && %s -game -progress)\n"),
 				                                 *SubprojectName, *ConfigurationName, *BuildCommand);
 				ReturnContent += FString::Printf(TEXT("add_custom_target(%s-%s-CLEAN ${BUILD} && %s)\n\n"),
 				                                 *SubprojectName, *ConfigurationName, *CleanCommand);

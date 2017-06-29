@@ -1,8 +1,8 @@
 {
 	"FileVersion" : 3,
-	"EngineVersion" : "4.x.0",
-	"Version" : 103,
-	"VersionName" : "1.03",
+	"EngineVersion" : "4.x",
+	"Version" : 104,
+	"VersionName" : "1.04",
 	"FriendlyName" : "CLion Integration",
 	"Description" : "Allows access to source code in CLion.",
 	"Category" : "Programming",
@@ -13,18 +13,17 @@
 	"SupportURL" : "https://github.com/dotBunny/CLionSourceCodeAccess/issues",
 	"EnabledByDefault" : true,
 	"CanContainContent" : false,
-	"IsBetaVersion" : true,
+	"IsBetaVersion" : false,
 	"Installed" : false,
 	"Modules" :
 	[
 		{
 			"Name" : "CLionSourceCodeAccess",
-			"Type" : "Developer",
+			"Type" : "Editor",
 			"LoadingPhase" : "PostEngineInit",
 			"WhitelistPlatforms" :
 			[
 				"Mac",
-				"Win64",
 				"Linux"
 			]
 		}

@@ -1,6 +1,6 @@
 {
 	"FileVersion" : 3,
-	"EngineVersion" : "4.x",
+	"EngineVersion" : "4.16.0",
 	"Version" : 105,
 	"VersionName" : "1.05",
 	"FriendlyName" : "CLion Integration",

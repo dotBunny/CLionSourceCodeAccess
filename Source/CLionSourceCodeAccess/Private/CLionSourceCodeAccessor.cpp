@@ -547,9 +547,10 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
 	}
 
 
-	const FString Path = FString::Printf(TEXT("\"%s --line %d --column %d %s\""),
-	                                     *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), LineNumber,
-	                                     ColumnNumber, *FullPath);
+	const FString Path = FString::Printf(TEXT("\"%s\" --line %d \"%s\""),
+	                                     *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), LineNumber, *FullPath);
+
+
 
 	FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr,
 	                                                0, nullptr, nullptr);

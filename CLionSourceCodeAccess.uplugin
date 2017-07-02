@@ -9,7 +9,7 @@
 	"CreatedBy" : "dotBunny, Inc.",
 	"CreatedByURL" : "http://dotbunny.com",
 	"DocsURL" : "https://github.com/dotBunny/CLionSourceCodeAccess/wiki",
-	"MarketplaceURL" : "",
+	"MarketplaceURL" : "com.epicgames.launcher://ue/marketplace/content/7a2e6de4c71a48c7b9df5f49b73e1a09",
 	"SupportURL" : "https://github.com/dotBunny/CLionSourceCodeAccess/issues",
 	"EnabledByDefault" : true,
 	"CanContainContent" : false,

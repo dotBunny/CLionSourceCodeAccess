@@ -490,7 +490,11 @@ FString FCLionSourceCodeAccessor::HandleConfiguration(FXmlNode* CurrentNode, con
 			if (!this->WorkingMonoPath.Equals(WorkingDirectory))
 			{ // Do this to avoid duplication in CMakeLists.txt
 				ReturnContent += FString::Printf(TEXT("\nset(MONO_ROOT_PATH \"%s\")\n"), *WorkingDirectory);
+#if PLATFORM_WINDOWS
+				ReturnContent += FString::Printf(TEXT("set(BUILD cd /d \"${MONO_ROOT_PATH}\")\n"));
+#else
 				ReturnContent += FString::Printf(TEXT("set(BUILD cd \"${MONO_ROOT_PATH}\")\n"));
+#endif
 
 				this->WorkingMonoPath = WorkingDirectory;
 			}

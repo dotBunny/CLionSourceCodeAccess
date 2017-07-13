@@ -18,7 +18,9 @@ The plugin has been modified to not list Win64 as a whitelisted platform due to 
    + `mingw64/mingw-w64-x86_64-make`
    + `mingw64/mingw-w64-x86_64-cmake`
    + `mingw64/mingw-w64-x86_64-gdb` (optional)
-- Install CLion and setup MinGW home: `[MSYS2 install location]/mingw64`
+- Install CLion and setup toolchains:
+   + MinGW home: `[MSYS2 install location]/mingw64`
+   + CMake path: `[MSYS2 install location]/mingw64/bin/cmake.exe`
 - Add `"Win64"` element to `WhitelistPlatforms` section of the .uplugin file
 - Configure the plugin:
    + C Compiler: `[MSYS2 install location]/mingw64/bin/clang.exe`

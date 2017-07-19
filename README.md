@@ -9,9 +9,8 @@ Please visit https://github.com/dotBunny/CLionSourceCodeAccess/wiki for informat
 [CLion Blog](https://blog.jetbrains.com/clion/2016/10/clion-and-ue4/)
 
 ## IMPORTANT
-The plugin has been modified to not list Win64 as a whitelisted platform due to the current problems building from Windows. If you want to experiment check this [commit](https://github.com/dotBunny/CLionSourceCodeAccess/commit/9bf1de60e1b5657bc55f980e62658044ca63dc8a) out to see how to turn it back on. This is only temporary, until a fix has been found for Windows.
+If you are a Windows user, there are some specific steps needed to make the plugin/CLion work with Unreal.
 
-**But there is a probably working way (as for me, it works):**
 - Install [MSYS2](http://www.msys2.org) with packages:
    + `mingw64/mingw-w64-x86_64-gcc`
    + `mingw64/mingw-w64-x86_64-clang`

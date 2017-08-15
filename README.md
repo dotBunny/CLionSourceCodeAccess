@@ -6,7 +6,7 @@ The plugin creates a fully flushed out CMakeList file for use with CLion, adding
 Please visit https://github.com/dotBunny/CLionSourceCodeAccess/wiki for information on how to install and use the plugin.
 
 ## Mentions
-[CLion Blog](https://blog.jetbrains.com/clion/2016/10/clion-and-ue4/)
+[CLion Blog](https://blog.jetbrains.com/clion/2016/10/clion-and-ue4/)  
 [UE Marketplace](https://www.unrealengine.com/marketplace/clion-integration)
 
 ## IMPORTANT

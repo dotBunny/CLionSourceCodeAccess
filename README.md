@@ -7,6 +7,7 @@ Please visit https://github.com/dotBunny/CLionSourceCodeAccess/wiki for informat
 
 ## Mentions
 [CLion Blog](https://blog.jetbrains.com/clion/2016/10/clion-and-ue4/)
+[UE Marketplace](https://www.unrealengine.com/marketplace/clion-integration)
 
 ## IMPORTANT
 If you are a Windows user, there are some specific steps needed to make the plugin/CLion work with Unreal.

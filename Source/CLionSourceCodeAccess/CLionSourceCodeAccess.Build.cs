@@ -1,10 +1,10 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+// Copyright 2017 dotBunny Inc. All Rights Reserved.
 
 namespace UnrealBuildTool.Rules
 {
 	public class CLionSourceCodeAccess : ModuleRules
 	{
-        public CLionSourceCodeAccess(TargetInfo Target)
+        public CLionSourceCodeAccess(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
@@ -13,7 +13,8 @@ namespace UnrealBuildTool.Rules
 					"SourceCodeAccess",
 					"DesktopPlatform",
                     "LevelEditor",
-                    "XmlParser"
+                    "XmlParser",
+                    "HotReload",
 				}
 			);
 
@@ -30,8 +31,9 @@ namespace UnrealBuildTool.Rules
                     "WorkspaceMenuStructure",
                     "Projects",
                     "PropertyEditor",
-
-                });
+                    "HotReload",
+                }
+            );
 		}
 	}
 }

@@ -1,5 +1,4 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
-// Copyright 2016 dotBunny, Inc. All Rights Reserved.
+// Copyright 2017 dotBunny Inc. All Rights Reserved.
 
 #pragma once
 
@@ -61,9 +60,21 @@ public:
 private:
 
 	/**
+	 * A local storage of the working Project name as we parse files
+	 */
+	FString WorkingProjectName;
+
+	/**
      * A local reference to the Settings object.
      */
 	UCLionSettings* Settings;
+
+	/**
+	 * A local storage of the working Mono path found while parsing files
+	 */
+	FString WorkingMonoPath;
+
+
 
 	/**
 	 * Instruct UnrealBuildTool to generate a CodeLite project, then convert it to CMakeList
@@ -78,8 +89,9 @@ private:
 	 * @param The attribute that we want to collect.
 	 * @return A CMakeList compatible string set of the attributes.
 	 */
-	static FString GetAttributeByTagWithRestrictions(FXmlNode *CurrentNode, const FString &Tag, const FString &Attribute, const bool &IncludeConfigs, const bool &IncludePlugins, const bool &IncludeShaders);
+	FString GetAttributeByTagWithRestrictions(FXmlNode* CurrentNode, const FString& Tag, const FString& Attribute);
 
-	static FString GetBuildCommands(FXmlNode *CurrentNode, const FString &SubprojectName);
-	static FString HandleConfiguration(FXmlNode *CurrentNode, const FString &SubprojectName, FString &MonoPath);
+	FString GetBuildCommands(FXmlNode* CurrentNode, const FString& SubprojectName);
+
+	FString HandleConfiguration(FXmlNode* CurrentNode, const FString& SubprojectName);
 };

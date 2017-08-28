@@ -1,14 +1,3 @@
-Binaries/Mac/UE4Editor-CLionSourceCodeAccess.dSYM
-Binaries/Mac/UE4Editor-CLionSourceCodeAccess.dylib
-Binaries/Mac/UE4Editor.modules
-Intermediate/Build/Mac/UE4Editor/Development/DylibCopy.sh
-Intermediate/Build/Mac/UE4Editor/Development/UE4Editor-CLionSourceCodeAccess.dylib.response
-Intermediate/Build/Mac/UE4Editor/Development/CLionSourceCodeAccess/CLionSourceCodeAccess.generated.cpp.o
-Intermediate/Build/Mac/UE4Editor/Development/CLionSourceCodeAccess/Module.CLionSourceCodeAccess.cpp
-Intermediate/Build/Mac/UE4Editor/Development/CLionSourceCodeAccess/Module.CLionSourceCodeAccess.cpp.ex
-Intermediate/Build/Mac/UE4Editor/Development/CLionSourceCodeAccess/Module.CLionSourceCodeAccess.cpp.o
-Intermediate/Build/Mac/UE4Editor/Inc/CLionSourceCodeAccess/CLionSettings.generated.h
-Intermediate/Build/Mac/UE4Editor/Inc/CLionSourceCodeAccess/CLionSourceCodeAccess.generated.cpp
-Intermediate/Build/Mac/UE4Editor/Inc/CLionSourceCodeAccess/CLionSourceCodeAccess.generated.dep.h
-Intermediate/Build/Mac/UE4Editor/Inc/CLionSourceCodeAccess/CLionSourceCodeAccessClasses.h
-Intermediate/Build/Mac/UE4Editor/Inc/CLionSourceCodeAccess/Timestamp
+UE4Editor-CLionSourceCodeAccess.dylib.ready
+Intermediate
+Binaries

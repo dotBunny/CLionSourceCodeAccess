@@ -65,7 +65,11 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
     // Start our master CMakeList file
     FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
-    OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n\n"));
+    OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n"));
+
+    //Set Response files output
+    OutputTemplate.Append(FString::Printf(TEXT("\nSET(CMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS 1 CACHE BOOL \"\" FORCE)")));
+    OutputTemplate.Append(FString::Printf(TEXT("\nSET(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES 1 CACHE BOOL \"\" FORCE)\n\n")));
 
     // Increase our progress
     ProjectGenerationTask.EnterProgressFrame(10, LOCTEXT("GeneratingCodLiteProject", "Generating CodeLite Project"));

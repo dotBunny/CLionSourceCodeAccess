@@ -108,7 +108,7 @@ bool UCLionSettings::CheckSettings()
 
 
 	// Update CMakeList path
-	this->CachedCMakeListPath = FPaths::Combine(*FPaths::ConvertRelativePathToFull(*FPaths::GameDir()),
+	this->CachedCMakeListPath = FPaths::Combine(*FPaths::ConvertRelativePathToFull(*FPaths::ProjectDir()),
 	                                            TEXT("CMakeLists.txt"));
 
 	return this->bSetupComplete;

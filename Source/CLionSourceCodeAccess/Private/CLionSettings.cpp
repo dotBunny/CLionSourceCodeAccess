@@ -3,6 +3,10 @@
 #include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSettings.h"
 
+#if PLATFORM_WINDOWS
+#include "AllowWindowsPlatformTypes.h"
+#endif
+
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 
 UCLionSettings::UCLionSettings(const FObjectInitializer& ObjectInitializer)
@@ -16,14 +20,50 @@ bool UCLionSettings::CheckSettings()
 #if PLATFORM_WINDOWS
 	if (this->CLion.FilePath.IsEmpty())
 	{
-		// Damn windows specific folders
-		if (FPaths::FileExists(TEXT("C:\\Program Files (x86)\\JetBrains\\CLion 2016.1\\bin\\clion64.exe")))
-		{
-			this->CLion.FilePath = TEXT("C:\\Program Files (x86)\\JetBrains\\CLion 2016.2\\bin\\clion64.exe");
+		// search from JetBrainsToolbox folder
+		FString ToolboxBinPath;
+
+		if (FWindowsPlatformMisc::QueryRegKey(HKEY_CURRENT_USER, TEXT("Software\\JetBrains s.r.o.\\JetBrainsToolbox\\"), TEXT(""), ToolboxBinPath)) {
+			FPaths::NormalizeDirectoryName(ToolboxBinPath);
+			FString PatternString(TEXT("(.*)/bin"));
+			FRegexPattern Pattern(PatternString);
+			FRegexMatcher Matcher(Pattern, ToolboxBinPath);
+			if (Matcher.FindNext())
+			{
+				FString ToolboxPath = Matcher.GetCaptureGroup(1);
+				FString CLionHome = FPaths::Combine(ToolboxPath, FString("apps"), FString("CLion"));
+				if (FPaths::DirectoryExists(CLionHome))
+				{
+					TArray<FString> IDEPaths;
+					IFileManager::Get().FindFilesRecursive(IDEPaths, *CLionHome, TEXT("clion64.exe"), true, false);
+					if (IDEPaths.Num() > 0)
+					{
+						this->CLion.FilePath = IDEPaths[0];
+					}
+				}
+			}
 		}
-		else if (FPaths::FileExists(TEXT("C:\\Program Files (x86)\\JetBrains\\CLion 2016.2\\bin\\clion.exe")))
+	}
+
+	if (this->CLion.FilePath.IsEmpty())
+	{
+		// search from ProgID
+		FString OpenCommand;
+
+		if (!FWindowsPlatformMisc::QueryRegKey(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Classes\\Applications\\clion64.exe\\shell\\open\\command\\"), TEXT(""), OpenCommand)) {
+			FWindowsPlatformMisc::QueryRegKey(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Classes\\Applications\\clion64.exe\\shell\\open\\command\\"), TEXT(""), OpenCommand);
+		}
+
+		FString PatternString(TEXT("\"(.*)\" \".*\""));
+		FRegexPattern Pattern(PatternString);
+		FRegexMatcher Matcher(Pattern, OpenCommand);
+		if (Matcher.FindNext())
 		{
-			this->CLion.FilePath = TEXT("C:\\Program Files (x86)\\JetBrains\\CLion 2016.2\\bin\\clion.exe");
+			FString IDEPath = Matcher.GetCaptureGroup(1);
+			if (FPaths::FileExists(IDEPath))
+			{
+				this->CLion.FilePath = IDEPath;
+			}
 		}
 	}
 #elif PLATFORM_MAC

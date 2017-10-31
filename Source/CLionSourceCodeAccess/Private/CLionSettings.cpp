@@ -41,10 +41,13 @@ bool UCLionSettings::CheckSettings()
 					TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
 					if (FJsonSerializer::Deserialize(JsonReader, JsonObject) && JsonObject.IsValid())
 					{
-						FString InstallLocation = JsonObject->GetStringField(TEXT("install_location"));
-						if (!InstallLocation.IsEmpty())
+						FString InstallLocation;
+						if (JsonObject->TryGetStringField(TEXT("install_location"), InstallLocation))
 						{
-							ToolboxPath = InstallLocation;
+							if (!InstallLocation.IsEmpty())
+							{
+								ToolboxPath = InstallLocation;
+							}
 						}
 					}
 				}

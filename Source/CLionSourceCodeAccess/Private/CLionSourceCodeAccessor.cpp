@@ -617,7 +617,7 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
 	// Build our paths based on what unreal sends to be opened
 	for (const auto& SourcePath : AbsoluteSourcePaths)
 	{
-		sourceFilesList = FString::Printf(TEXT("%s %s"), *sourceFilesList, *SourcePath);
+		sourceFilesList = FString::Printf(TEXT("%s \"%s\""), *sourceFilesList, *SourcePath);
 	}
 
 	// Trim any whitespace on our source file list

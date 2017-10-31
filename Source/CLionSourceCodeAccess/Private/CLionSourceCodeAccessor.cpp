@@ -574,6 +574,11 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
 
 bool FCLionSourceCodeAccessor::OpenSolution()
 {
+	if (!this->Settings->IsSetup())
+	{
+		UE_LOG(LogCLionAccessor, Warning, TEXT("Please configure the CLion integration in your project settings."));
+		return false;
+	}
 
 	// TODO: Add check for CMakeProject file, if not there generate
 

@@ -31,6 +31,24 @@ bool UCLionSettings::CheckSettings()
 			if (Matcher.FindNext())
 			{
 				FString ToolboxPath = Matcher.GetCaptureGroup(1);
+
+				FString SettingJsonPath = FPaths::Combine(ToolboxPath, FString(".settings.json"));
+				if (FPaths::FileExists(SettingJsonPath))
+				{
+					FString JsonStr;
+					FFileHelper::LoadFileToString(JsonStr, *SettingJsonPath);
+					TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(JsonStr);
+					TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
+					if (FJsonSerializer::Deserialize(JsonReader, JsonObject) && JsonObject.IsValid())
+					{
+						FString InstallLocation = JsonObject->GetStringField(TEXT("install_location"));
+						if (!InstallLocation.IsEmpty())
+						{
+							ToolboxPath = InstallLocation;
+						}
+					}
+				}
+
 				FString CLionHome = FPaths::Combine(ToolboxPath, FString("apps"), FString("CLion"));
 				if (FPaths::DirectoryExists(CLionHome))
 				{

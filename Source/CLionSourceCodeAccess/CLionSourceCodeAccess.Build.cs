@@ -32,6 +32,7 @@ namespace UnrealBuildTool.Rules
                     "Projects",
                     "PropertyEditor",
                     "HotReload",
+                    "Json",
                 }
             );
 		}

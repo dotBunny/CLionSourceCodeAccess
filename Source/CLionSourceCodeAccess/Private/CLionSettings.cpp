@@ -150,6 +150,12 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 	// CLion Executable Path Check
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, CLion))
 	{
+		if (this->CLion.FilePath.IsEmpty())
+		{
+			this->bSetupComplete = false;
+			return;
+		}
+
 		this->CLion.FilePath = FPaths::ConvertRelativePathToFull(this->CLion.FilePath);
 
 		FText FailReason;
@@ -178,6 +184,10 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 		{
 			FMessageDialog::Open(EAppMsgType::Ok, FailReason);
 			this->CLion.FilePath = this->PreviousCLion;
+			if (this->CLion.FilePath.IsEmpty())
+			{
+				this->bSetupComplete = false;
+			}
 			return;
 		}
 	}
@@ -186,6 +196,12 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 	// Mono Path
 	if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UCLionSettings, Mono))
 	{
+		if (this->Mono.FilePath.IsEmpty())
+		{
+			this->bSetupComplete = false;
+			return;
+		}
+
 		this->Mono.FilePath = FPaths::ConvertRelativePathToFull(this->Mono.FilePath);
 
 		FText FailReason;

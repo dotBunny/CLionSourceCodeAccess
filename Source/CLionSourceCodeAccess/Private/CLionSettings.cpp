@@ -90,16 +90,18 @@ bool UCLionSettings::CheckSettings()
 #elif PLATFORM_MAC
 	if (this->CLion.FilePath.IsEmpty())
 	{
-		if (FPaths::FileExists(TEXT("/Applications/CLion.app/Contents/MacOS/clion")))
+		NSURL* AppURL = [[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:@"com.jetbrains.CLion"];
+		if (AppURL != nullptr)
 		{
-			this->CLion.FilePath = TEXT("/Applications/CLion.app/Contents/MacOS/clion");
+			this->CLion.FilePath = FString([AppURL path]);
 		}
 	}
 	if (this->Mono.FilePath.IsEmpty())
 	{
-		if (FPaths::FileExists(TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono")))
+		FString MonoPath = FPaths::Combine(*FPaths::RootDir(), TEXT("Engine"), TEXT("Binaries"), TEXT("ThirdParty"), TEXT("Mono"), TEXT("Mac"), TEXT("bin"), TEXT("mono"));
+		if (FPaths::FileExists(MonoPath))
 		{
-			this->Mono.FilePath = TEXT("/Library/Frameworks/Mono.framework/Versions/Current/bin/mono");
+			this->Mono.FilePath = MonoPath;
 		}
 	}
 	if (this->CCompiler.FilePath.IsEmpty())

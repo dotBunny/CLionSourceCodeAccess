@@ -598,6 +598,29 @@ bool FCLionSourceCodeAccessor::OpenSolution()
 	return true;
 }
 
+bool FCLionSourceCodeAccessor::OpenSolutionAtPath(const FString& InSolutionPath) {
+	// TODO: Add check for CMakeProject file, if not there generate
+
+	if (this->Settings->bRequireRefresh)
+	{
+		this->GenerateProjectFile();
+	}
+
+	if (this->Settings->bRequireRefresh || !FPaths::FileExists(*this->Settings->GetCMakeListPath()))
+	{
+		this->GenerateProjectFile();
+	}
+
+	if (FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *InSolutionPath, true, true, false, nullptr, 0, nullptr,
+	                                 nullptr).IsValid())
+	{
+		// This seems to always fail no matter what we do - could be the process type? Get rid of the warning for now
+		//UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the solution failed."));
+		return false;
+	}
+	return true;
+}
+
 bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSourcePaths)
 {
 	if (!this->Settings->IsSetup())
@@ -640,6 +663,12 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
 bool FCLionSourceCodeAccessor::SaveAllOpenDocuments() const
 {
 	// TODO: Implement saving remotely?
+	return true;
+}
+
+bool FCLionSourceCodeAccessor::DoesSolutionExist() const
+{
+	// TODO: check if the solution really exists
 	return true;
 }
 

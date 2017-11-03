@@ -236,7 +236,7 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 		NSBundle *Bundle = [NSBundle bundleWithPath: AppPath];
 		FString BundleId = FString([Bundle bundleIdentifier]);
 
-		if (!BundleId.StartsWith(TEXT("com.jetbrains.CLion")))
+		if (!BundleId.StartsWith(TEXT("com.jetbrains.CLion"), ESearchCase::CaseSensitive))
 		{
 			FailReason = LOCTEXT("CLionSelectMacApp", "Please select the CLion app");
 			FMessageDialog::Open(EAppMsgType::Ok, FailReason);

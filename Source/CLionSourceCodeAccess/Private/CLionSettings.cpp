@@ -243,7 +243,7 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 			this->CLion.FilePath = this->PreviousCLion;
 			return;
 		}
-		this->CLion.FilePath = FString([[Bundle executableURL] path]);
+		this->CLion.FilePath = FString([Bundle executablePath]);
 #endif
 
 		if (this->CLion.FilePath == this->PreviousCLion)

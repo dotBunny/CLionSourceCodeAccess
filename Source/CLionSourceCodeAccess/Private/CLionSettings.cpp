@@ -90,6 +90,14 @@ bool UCLionSettings::CheckSettings()
 #elif PLATFORM_MAC
 	if (this->CLion.FilePath.IsEmpty())
 	{
+		NSURL* AppURL = [[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:@"com.jetbrains.CLion-EAP"];
+		if (AppURL != nullptr)
+		{
+			this->CLion.FilePath = FString([AppURL path]);
+		}
+	}
+	if (this->CLion.FilePath.IsEmpty())
+	{
 		NSURL* AppURL = [[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:@"com.jetbrains.CLion"];
 		if (AppURL != nullptr)
 		{
@@ -224,18 +232,18 @@ void UCLionSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 		FText FailReason;
 
 #if PLATFORM_MAC
-		if (this->CLion.FilePath.EndsWith(TEXT("clion.app")))
-		{
-			this->CLion.FilePath = this->CLion.FilePath.Append(TEXT("/Contents/MacOS/clion"));
-		}
+		NSString *AppPath = [NSString stringWithUTF8String: TCHAR_TO_UTF8(*this->CLion.FilePath)];
+		NSBundle *Bundle = [NSBundle bundleWithPath: AppPath];
+		FString BundleId = FString([Bundle bundleIdentifier]);
 
-		if (!this->CLion.FilePath.Contains(TEXT("clion.app")))
+		if (!BundleId.StartsWith(TEXT("com.jetbrains.CLion"), ESearchCase::CaseSensitive))
 		{
 			FailReason = LOCTEXT("CLionSelectMacApp", "Please select the CLion app");
 			FMessageDialog::Open(EAppMsgType::Ok, FailReason);
 			this->CLion.FilePath = this->PreviousCLion;
 			return;
 		}
+		this->CLion.FilePath = FString([Bundle executablePath]);
 #endif
 
 		if (this->CLion.FilePath == this->PreviousCLion)

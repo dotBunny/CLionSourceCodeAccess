@@ -1,7 +1,7 @@
 // Copyright 2017 dotBunny Inc. All Rights Reserved.
 
-#include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSettings.h"
+#include "CLionSourceCodeAccessPrivatePCH.h"
 
 #if PLATFORM_WINDOWS
 #include "AllowWindowsPlatformTypes.h"

@@ -1,7 +1,7 @@
 // Copyright 2017 dotBunny, Inc. All Rights Reserved.
 
-#include "CLionSourceCodeAccessPrivatePCH.h"
 #include "CLionSourceCodeAccessor.h"
+#include "CLionSourceCodeAccessPrivatePCH.h"
 
 #define LOCTEXT_NAMESPACE "CLionSourceCodeAccessor"
 

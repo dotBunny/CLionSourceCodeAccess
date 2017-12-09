@@ -34,6 +34,8 @@ namespace UnrealBuildTool.Rules
                     "HotReload",
                 }
             );
+
+            PCHUsage = PCHUsageMode.NoSharedPCHs;
 		}
 	}
 }

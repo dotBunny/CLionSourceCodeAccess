@@ -35,6 +35,8 @@ namespace UnrealBuildTool.Rules
                     "Json",
                 }
             );
+
+            PCHUsage = PCHUsageMode.NoSharedPCHs;
 		}
 	}
 }

@@ -62,7 +62,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	FPaths::NormalizeFilename(UnrealBuildToolPath);
 	FString ProjectFilePath = *FPaths::ConvertRelativePathToFull(*FPaths::GetProjectFilePath());
 	FPaths::NormalizeFilename(ProjectFilePath);
-	FString ProjectPath = *FPaths::ConvertRelativePathToFull(*FPaths::GameDir());
+	FString ProjectPath = *FPaths::ConvertRelativePathToFull(*FPaths::ProjectDir());
 	FPaths::NormalizeFilename(ProjectPath);
 
 	// Assign and filter our project name
@@ -75,7 +75,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	// Start our master CMakeList file
 	FString OutputTemplate = TEXT("cmake_minimum_required (VERSION 2.6)\nproject (UE4)\n");
 	OutputTemplate.Append(TEXT("set(CMAKE_CXX_STANDARD 11)\n"));
-  
+
   //Set Response files output
   OutputTemplate.Append(FString::Printf(TEXT("\nSET(CMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS 1 CACHE BOOL \"\" FORCE)")));
   OutputTemplate.Append(FString::Printf(TEXT("\nSET(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES 1 CACHE BOOL \"\" FORCE)\n")));
@@ -105,13 +105,13 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 #if PLATFORM_WINDOWS
 	const FString BuildProjectCommand = *UnrealBuildToolPath;
-	const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
+	const FString BuildProjectParameters = FString::Printf(TEXT("\"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFiles -CurrentPlatform -NoShippingConfigs"),
 											   *ProjectFilePath,
 											   *this->WorkingProjectName);
 #else
 	const FString BuildProjectCommand = *this->Settings->Mono.FilePath;
 	const FString BuildProjectParameters = FString::Printf(
-			TEXT("\"%s\" \"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFile -CurrentPlatform -NoShippingConfigs"),
+			TEXT("\"%s\" \"%s\" -Game \"%s\" -OnlyPublic -CodeLiteFiles -CurrentPlatform -NoShippingConfigs"),
 			*UnrealBuildToolPath,
 			*ProjectFilePath,
 			*this->WorkingProjectName);
@@ -203,7 +203,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	FString IncludeDirectoriesOutputPath = FPaths::Combine(*ProjectFileOutputFolder, TEXT("IncludeDirectories.cmake"));
 	FPaths::NormalizeFilename(IncludeDirectoriesOutputPath);
 	if (!FFileHelper::SaveStringToFile(IncludeDirectoriesContent, *IncludeDirectoriesOutputPath,
-	                                   FFileHelper::EEncodingOptions::Type::ForceAnsi))
+	                                   FFileHelper::EEncodingOptions::ForceAnsi))
 	{
 		UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *IncludeDirectoriesOutputPath);
 		return false;
@@ -236,7 +236,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 
 		if (!FFileHelper::SaveStringToFile(JSONOutput, *IncludeJSONOutputPath,
-		                                   FFileHelper::EEncodingOptions::Type::ForceAnsi))
+		                                   FFileHelper::EEncodingOptions::ForceAnsi))
 		{
 			UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *IncludeJSONOutputPath);
 			return false;
@@ -260,7 +260,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 	// Output our Definitions content and add an entry to the CMakeList
 	FString DefinitionsOutputPath = FPaths::Combine(*ProjectFileOutputFolder, TEXT("Definitions.cmake"));
 	if (!FFileHelper::SaveStringToFile(DefinitionsProcessed, *DefinitionsOutputPath,
-	                                   FFileHelper::EEncodingOptions::Type::ForceAnsi))
+	                                   FFileHelper::EEncodingOptions::ForceAnsi))
 	{
 		UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *DefinitionsOutputPath);
 		return false;
@@ -353,7 +353,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 		FString ProjectOutputPath = FPaths::Combine(*ProjectFileOutputFolder,
 		                                            *FString::Printf(TEXT("%s.cmake"), *SubProjectName));
 		if (!FFileHelper::SaveStringToFile(OutputProjectTemplate, *ProjectOutputPath,
-		                                   FFileHelper::EEncodingOptions::Type::ForceAnsi))
+		                                   FFileHelper::EEncodingOptions::ForceAnsi))
 		{
 			UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *ProjectOutputPath);
 			return false;
@@ -377,7 +377,7 @@ bool FCLionSourceCodeAccessor::GenerateFromCodeLiteProject()
 
 	// Write out the file
 	if (!FFileHelper::SaveStringToFile(OutputTemplate, *this->Settings->GetCMakeListPath(),
-	                                   FFileHelper::EEncodingOptions::Type::ForceAnsi))
+	                                   FFileHelper::EEncodingOptions::ForceAnsi))
 	{
 		UE_LOG(LogCLionAccessor, Error, TEXT("Error writing %s"), *this->Settings->GetCMakeListPath());
 		return false;
@@ -556,7 +556,7 @@ bool FCLionSourceCodeAccessor::OpenFileAtLine(const FString& FullPath, int32 Lin
 
 
 	const FString Path = FString::Printf(TEXT("\"%s\" --line %d \"%s\""),
-	                                     *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()), LineNumber, *FullPath);
+	                                     *FPaths::ConvertRelativePathToFull(*FPaths::ProjectDir()), LineNumber, *FullPath);
 
 
 
@@ -592,8 +592,31 @@ bool FCLionSourceCodeAccessor::OpenSolution()
 		this->GenerateProjectFile();
 	}
 
-	const FString Path = FString::Printf(TEXT("\"%s\""), *FPaths::ConvertRelativePathToFull(*FPaths::GameDir()));
+	const FString Path = FString::Printf(TEXT("\"%s\""), *FPaths::ConvertRelativePathToFull(*FPaths::ProjectDir()));
 	if (FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *Path, true, true, false, nullptr, 0, nullptr,
+	                                 nullptr).IsValid())
+	{
+		// This seems to always fail no matter what we do - could be the process type? Get rid of the warning for now
+		//UE_LOG(LogCLionAccessor, Warning, TEXT("Opening the solution failed."));
+		return false;
+	}
+	return true;
+}
+
+bool FCLionSourceCodeAccessor::OpenSolutionAtPath(const FString& InSolutionPath) {
+	// TODO: Add check for CMakeProject file, if not there generate
+
+	if (this->Settings->bRequireRefresh)
+	{
+		this->GenerateProjectFile();
+	}
+
+	if (this->Settings->bRequireRefresh || !FPaths::FileExists(*this->Settings->GetCMakeListPath()))
+	{
+		this->GenerateProjectFile();
+	}
+
+	if (FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *InSolutionPath, true, true, false, nullptr, 0, nullptr,
 	                                 nullptr).IsValid())
 	{
 		// This seems to always fail no matter what we do - could be the process type? Get rid of the warning for now
@@ -626,7 +649,8 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
 	}
 
 	// Trim any whitespace on our source file list
-	sourceFilesList = sourceFilesList.Trim();
+	sourceFilesList.TrimStartInline();
+	sourceFilesList.TrimEndInline();
 
 	FProcHandle Proc = FPlatformProcess::CreateProc(*this->Settings->CLion.FilePath, *sourceFilesList, true, false,
 	                                                false, nullptr, 0, nullptr, nullptr);
@@ -644,6 +668,12 @@ bool FCLionSourceCodeAccessor::OpenSourceFiles(const TArray<FString>& AbsoluteSo
 bool FCLionSourceCodeAccessor::SaveAllOpenDocuments() const
 {
 	// TODO: Implement saving remotely?
+	return true;
+}
+
+bool FCLionSourceCodeAccessor::DoesSolutionExist() const
+{
+	// TODO: check if the solution really exists
 	return true;
 }
 
